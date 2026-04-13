@@ -1,0 +1,15 @@
+{
+  "name": "slidelang-skill",
+  "owner": {
+    "name": "Eli Chen"
+  },
+  "plugins": [
+    {
+      "name": "slidelang",
+      "source": "./",
+      "description": "Create and publish presentation decks using SlideLang",
+      "version": "0.1.0",
+      "license": "MIT"
+    }
+  ]
+}
