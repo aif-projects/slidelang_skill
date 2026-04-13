@@ -1,0 +1,8 @@
+{
+  "name": "slidelang",
+  "description": "Create and publish presentation decks using the SlideLang DSL — a compact, agent-friendly slide authoring system with layout validation, image generation, and hosted publishing.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Eli Chen"
+  }
+}

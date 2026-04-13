@@ -1,0 +1,17 @@
+{
+  "name": "slidelang-skill",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deck-scratch": "tsx ts/src/cli/deck-scratch.ts",
+    "images": "tsx ts/src/cli/generate-images.ts",
+    "projects": "tsx ts/src/cli/projects.ts"
+  },
+  "dependencies": {
+    "tsx": "^4.21.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "@types/node": "^24.0.0"
+  }
+}
