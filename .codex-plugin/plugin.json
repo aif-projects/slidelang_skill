@@ -1,0 +1,37 @@
+{
+  "name": "slidelang",
+  "version": "0.1.0",
+  "description": "Create and publish presentation decks using the SlideLang DSL — a compact, agent-friendly slide authoring system with layout validation, image generation, and hosted publishing.",
+  "author": {
+    "name": "Eli Chen",
+    "url": "https://github.com/aif-projects/slidelang_skill"
+  },
+  "homepage": "https://github.com/aif-projects/slidelang_skill",
+  "repository": "https://github.com/aif-projects/slidelang_skill",
+  "license": "MIT",
+  "keywords": [
+    "slides",
+    "presentations",
+    "dsl",
+    "authoring",
+    "publishing"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "SlideLang",
+    "shortDescription": "Create and revise presentation decks with SlideLang.",
+    "longDescription": "Create, revise, validate, and publish presentation decks using the SlideLang DSL and hosted thin-client workflow.",
+    "developerName": "Eli Chen",
+    "category": "Productivity",
+    "capabilities": [
+      "Write"
+    ],
+    "websiteURL": "https://github.com/aif-projects/slidelang_skill",
+    "defaultPrompt": [
+      "Create a deck about reinforcement learning for a university audience.",
+      "Revise an existing SlideLang deck and republish it.",
+      "Fix layout issues in a SlideLang deck until it publishes cleanly."
+    ],
+    "brandColor": "#2563EB"
+  }
+}
