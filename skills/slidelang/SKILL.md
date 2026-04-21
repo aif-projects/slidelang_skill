@@ -142,6 +142,13 @@ Generate refs/assets before creating slide files — slides that reference missi
 Create `decks/main/theme.json` in the project directory with colors and fonts for the deck. See `references/dsl.md` for the full theme schema and an example.
 
 - `font_body` is required. `font_display` is for headings.
+- `theme.json` defines palette and fonts only. Runtime style tokens like `pn`, `ttc`, `dv`, and `ca1` are derived automatically.
+- Theme tokens are group-specific:
+  - `box` styles for `m` / `b`
+  - `shape` styles for `l` / `c`
+  - `text` styles for `tx`
+  - `conn` styles for `cn`
+- If you see a style-group error, the usual cause is using a token from the wrong group. Example: `pn` is valid on `b` but invalid on `l`.
 - On dark themes, `line` must be materially lighter than `paper` or contrast lint will fail.
 - Choose a unique design direction per deck — do not copy themes from other decks.
 
@@ -169,6 +176,11 @@ Each slide is a JSON spec. See `references/dsl.md` for the full DSL reference, b
   ]
 }
 ```
+
+Text nodes support TeX math:
+- `$...$` for inline math
+- `$$...$$` for display math
+- `{"math": true}` or `{"math": "display"}` when you want the whole node treated as math without delimiters
 
 Update `manifest.json` to list slides:
 

@@ -1,180 +1,260 @@
-# SlideLang DSL Reference
+# SlideLang Reference
 
-## Top-level keys
+Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
 
-- `v`: version string, always `"sl0"`
-- `fr`: `[width, height, padding]` — standard is `[1440, 810, 18]`
-- `meta`: `{"id": "slide_00", "title": "..."}`
-- `gd`: global defaults — `{"page": 18, "attach": 14, "gap": 8, "txtc": 10}`
-- `el`: elements / containers array
-- `tx`: text nodes array
-- `cn`: connectors array
+## Core
 
-Do not define `th` in authored slide specs. Use a sibling `theme.json` instead.
+- top-level keys:
+  - `meta`: id + title
+  - `fr`: `[width, height, padding]`
+  - `el`: elements / containers
+  - `tx`: text nodes
+  - `cn`: connectors
+- `gd`: global guards
+- authored slide specs must not define `th`
+- each deck must provide sibling `theme.json`
+- `theme.json`: `font_body` is the canonical required body font; legacy `font` is still accepted and used as fallback
 
 ## Theme
 
-`decks/main/theme.json` defines deck-level styling:
+- `theme.json` defines palette + fonts only. Do not manually define tokens like `pn`, `cb`, or `ttc`.
+- required theme fields:
+  - `paper`
+  - `ink`
+  - `muted`
+  - `line`
+  - `cool`
+  - `warm`
+  - `neutral`
+  - `panel`
+  - `dark`
+- optional theme fields:
+  - `name`
+  - `font`
+  - `font_body`
+  - `font_display`
+- runtime style groups are derived from those fields:
+  - `box` styles for `m` / `b`
+  - `shape` styles for `l` / `c`
+  - `text` styles for `tx`
+  - `conn` styles for `cn`
+- common derived tokens by group (non-exhaustive):
+  - `box`: `pn`, `qa`, `qb`, `kd`, `sqw`, `sqb`, `dst`
+  - `shape`: `dv`, `ink`, `oc`, `ocg`, `cb`
+  - `text`: `ttc`, `sec`, `bdc`, `mic`, `lab`
+  - `conn`: `ca`, `ca1`, `cb`, `ink`, `gsa`
+- these are examples, not the full runtime token set
+- wrong-group example:
+  - `pn` is a `box` style, so `["l", ..., "pn"]` is invalid
+  - use a `shape` style like `dv` or `ink` on `l`
 
-```json
-{
-  "paper": "#F2EBDD",
-  "ink": "#1A1815",
-  "muted": "#6B5F49",
-  "line": "#1A1815",
-  "cool": "#2F4858",
-  "warm": "#CC5500",
-  "neutral": "#E6DDCB",
-  "panel": "#E6DDCB",
-  "dark": "#1A1815",
-  "font_display": "Fraunces, 'Iowan Old Style', Georgia, serif",
-  "font_body": "Inter, 'Helvetica Neue', Arial, sans-serif"
-}
-```
+## Ops
 
-`font_body` is required. Legacy `font` is accepted as fallback.
-
-## Element ops
-
-Shape elements in `el`:
-
-| Op | Purpose | Signature |
-|----|---------|-----------|
-| `b` | box / chip / card | `["b", id, x, y, w, h, style, parent, opts]` |
-| `m` | module / panel rect | `["m", id, x, y, w, h, style, parent, opts]` |
-| `sk` | stacked-card shorthand | `["sk", id, x, y, w, h, style, parent, opts]` |
-| `l` | line | `["l", id, x, y, w, h, style, parent, opts]` |
-| `c` | circle | `["c", id, x, y, w, h, style, parent, opts]` |
-| `img` | image | `["img", id, x, y, w, h, "asset:alias", parent, opts]` |
-
-Layout containers in `el`:
-
-| Op | Purpose | Signature |
-|----|---------|-----------|
-| `vs` | vertical stack | `["vs", id, x, y, w, h, parent, items, opts]` |
-| `hs` | horizontal stack | `["hs", id, x, y, w, h, parent, items, opts]` |
-| `gr` | grid | `["gr", id, x, y, w, h, parent, cols, items, opts]` |
-| `sr` | compact editorial row | `["sr", id, x, y, w, h, parent, slots, opts]` |
-| `panel` | named-slot editorial panel | `["panel", id, x, y, w, h, parent, slots, opts]` |
-| `z` | exclusion zone / obstacle | `["z", id, x, y, w, h, parent, opts]` |
-
-### Container opts
-
-Common opts across containers:
-- `p`: padding
-- `g`: gap between children
-- `ov`: overflow policy (`fail`, `tighten_gap`, `shrink_text`, `clip`)
-- `cp`: corner padding / border radius
-
-Layout-specific:
-- `vs`: `ax` (align-x), `tl` (text line budget), `td` (text density budget)
-- `hs`: `ay` (align-y)
-- `gr`: `gx`/`gy` (column/row gap), `cw` (column widths)
-- `panel` slots: `grow` (flex grow), `lk`/`lo` (lock position), `ab`/`rb` (authoring/render budgets)
-- `z`: `co` (connector obstacle), `k` (kind)
-
-`sr` slot kinds: `["g", lane_w, glyphs, opts?]`, `["o", lane_w, symbol, opts?]`, `["v", lane_w, blocks, opts?]`
-
-### Common element opts
-
-- `cp`: corner padding / border radius
-- `bleed`: true for elements that extend to frame edge
-- `decorative`: true for non-content elements
-
-## Text nodes
-
-```json
-["text_id", x, y, w, h, "style", "Content text", parent_or_null, {opts}]
-```
-
-Text opts:
-- `fs`: font size
-- `ta`: text align (`"l"`, `"center"`, `"r"`)
-- `c`: color override
-- `lh`: line height multiplier
-- `mc`: max character budget
-- `fw`: font weight
-- `lockx`, `locky`: prevent compiler from repositioning on this axis
-- `mdx`, `mdy`: maximum drift the compiler may apply
-- `ra`: rotation angle
-- `ro`: rotation origin
-
-Common text styles: `ttc` (title), `sec` (section heading), `bdc` (body copy), `lab` (label), `mic` (micro/muted)
+- shapes:
+  - `m`: module / panel rect
+  - `b`: box / chip / card rect
+  - `sk`: stacked-card shorthand
+  - `l`: line
+  - `c`: circle
+  - `img`: image
+- shape signatures:
+  - `l = ["l", id, x1, y1, x2, y2, style, opts?]`
+  - `c = ["c", id, cx, cy, r, style, opts?]`
+- layout:
+  - `vs`: vertical stack
+  - `hs`: horizontal stack
+  - `gr`: grid
+  - `sr`: compact editorial row
+  - `panel`: named-slot editorial panel
+  - `z`: exclusion zone / grouped obstacle
+- legacy:
+  - `vp` lowers through `vs`
 
 ## Connectors
 
-Connector kinds in `cn`:
+- kinds:
+  - `pl`: ordinary connector / manual polyline
+  - `gi`: grouped inbound
+  - `go`: grouped outbound
+- rule:
+  - use `pl` for ordinary `A -> B`
+  - use `gi` when several peers converge on one hub edge and should read as one grouped flow
+  - use `go` when one hub fans to multiple targets and should read as one grouped flow
+- signatures:
+  - `pl = ["pl", id, refs, style, opts?]`
+  - `gi = ["gi", id, [srcRef...], dstRef, style, bundleCoord, opts?]`
+  - `go = ["go", id, srcRef, [dstRef...], style, bundleCoord, opts?]`
+- grouped-family behavior:
+  - `gi` draws multiple branches into one shared inbound trunk with one terminal head at the sink
+  - `go` draws one outbound trunk from the source and branches to many headed leaves
+- connector opts:
+  - `cr`: rounded elbows
+  - `dash`
+  - `op`
+  - `ig`: ignore obstacle ids
+  - `th`: line thickness
+- anchors:
+  - built-in: `t b l r c tl tr bl br`
+  - indexed ports: `t0/3 t1/3 b2/3 l0/2 r1/3`
+  - prefer boundary anchors for connectors entering/leaving boxes
+  - raw interior starts trigger `connector_internal_endpoint`
+- examples:
+  - `gi = ["gi", "c1", ["A:r", "B:r", "C:r"], "HUB:l", "cb", 720, {"th": 3.2}]`
+  - `go = ["go", "c2", "HUB:r", ["A:l", "B:l", "C:l"], "cb", 980, {"th": 3.2}]`
 
-| Kind | Purpose | Signature |
-|------|---------|-----------|
-| `pl` | polyline / ordinary A→B | `["pl", id, refs, style, opts?]` |
-| `gi` | grouped inbound (many→one) | `["gi", id, [srcRef...], dstRef, style, bundleCoord, opts?]` |
-| `go` | grouped outbound (one→many) | `["go", id, srcRef, [dstRef...], style, bundleCoord, opts?]` |
-| `fi` | fan-in | `["fi", id, [srcRef...], dstRef, style, [weights...], opts?]` |
+## Layout Primitives
 
-Use `pl` for ordinary A→B connections. Use `gi`/`go` when several peers converge on or fan from one hub.
+- `vs = ["vs", id, x, y, w, h, parent, items, opts]`
+  - opts: `p g ax tl td ov cp`
+- `hs = ["hs", id, x, y, w, h, parent, items, opts]`
+  - opts: `p g ay ov`
+- `gr = ["gr", id, x, y, w, h, parent, cols, items, opts]`
+  - opts: `p g gx gy cw ov`
+- `sr = ["sr", id, x, y, w, h, parent, slots, opts]`
+  - slot kinds:
+    - `["g", lane_w, glyphs, opts?]`
+    - `["o", lane_w, symbol, opts?]`
+    - `["v", lane_w, blocks, opts?]`
+- `panel = ["panel", id, x, y, w, h, parent, slots, opts]`
+  - slot opts: `p grow lk lo ab rb`
+- `z = ["z", id, x, y, w, h, parent, opts]`
+  - opts: `g co k`
 
-Connector styles are theme-derived (e.g., `ca1`, `ca2`, `cb`). The compiler resolves them from `theme.json`. Use any style token the theme defines; common ones are `ca1` (primary accent) and `cb` (secondary).
+## Text
 
-### Anchor points
+- full-node TeX:
+  - `$...$` for inline math
+  - `$$...$$` for display math
+- mixed prose with inline TeX is supported inside one text string
+- text opts:
+  - `{"math": true}` treats the whole node as inline math when delimiters are omitted
+  - `{"math": "display"}` treats the whole node as display math when delimiters are omitted
 
-Built-in: `t b l r c tl tr bl br`
-Indexed ports: `t0/3 t1/3 b2/3 l0/2 r1/3`
+## Relative Placement
 
-Prefer boundary anchors for connectors entering/leaving boxes. Example: `"BOX_A:r"` → `"BOX_B:l"`.
+- helpers:
+  - `stack_below`
+  - `stack_above`
+  - `stack_right_of`
+  - `stack_left_of`
+  - `gap_after`
+  - `stack_gap`
+  - `align_x: left|center|right`
+  - `align_y: top|center|bottom`
+- only resolves against earlier-declared nodes
 
-### Connector opts
+## Layout / Resolve Model
 
-- `cr`: rounded elbows
-- `dash`: dashed line
-- `op`: opacity
-- `ig`: ignore obstacle IDs (array)
-- `th`: line thickness
-
-## Relative placement
-
-Helpers for positioning elements relative to others:
-- `stack_below`, `stack_above`, `stack_right_of`, `stack_left_of`
-- `gap_after`, `stack_gap`
-- `align_x: left|center|right`
-- `align_y: top|center|bottom`
-
-Only resolves against earlier-declared nodes.
+- local only; no global slide solve
+- pipeline:
+  1. estimate intrinsic text
+  2. estimate intrinsic row/container size
+  3. place children inside `vs` / `hs` / `gr`
+  4. apply overflow policy
+  5. run preflight
 
 ## Budgets
 
-Authoring block (`ab`):
+- authoring block:
+
 ```json
 {"ab": {"pl": 10, "pd": 0.42, "mc": 180, "mode": "editorial"}}
 ```
 
-Render block (`rb`):
+- render block:
+
 ```json
 {"rb": {"hl": 12, "hd": 0.5, "ov": "fail", "min_fs": 11, "min_gap": 6}}
 ```
 
-- `pd` / `hd`: preferred / hard density (child text area / parent content area)
-- `pl` / `hl`: preferred / hard line budget
-- `mc`: char budget override
-- `ov`: overflow policy
-- Large regions often default density to `0.42`
+- usage:
+  - flat opts on top-level boxes/modules are the normal surface: `td tdp tl tlp mc mcp ov`
+  - `ab` / `rb` are aliases that expand into those flat keys
+  - `ab.pd` maps to preferred density only
+  - if you must raise the hard density threshold, use `td` or `rb.hd`
 
-## Overflow policies
+- authoring keys:
+  - `pl`: preferred line budget
+  - `pd`: preferred density budget
+  - `mc`: preferred char budget override
+  - `mode`: archetype hint
+- render keys:
+  - `hl`: hard line budget
+  - `hd`: hard density budget
+  - `mc`: hard char budget override
+  - `ov`: overflow policy
+  - `min_fs`
+  - `min_gap`
+- density:
+  - parent density = child text-box area / parent content area
+  - large regions often default to `0.42`
+  - oversized text node `h` counts against density even if copy is short
+  - keep text-node `h` tight
+- `mc` on text nodes is optional; compiler derives it from current string length
 
-- `fail`: hard stop on overflow (default for editorial content)
-- `tighten_gap`: reduce spacing to fit
-- `shrink_text`: reduce font size to fit
-- `clip`: clip overflow (decorative only)
+## Theme Inheritance
 
-## Images in slides
+- some box styles define child-text defaults
+- `kd` forces light child text unless color is explicitly overridden
+
+## Overflow
+
+- container overflow policies:
+  - `fail`
+  - `tighten_gap`
+  - `shrink_text`
+  - `clip` for decorative only
+- editorial default should usually be `fail`
+
+## Images
+
+- roles:
+  - `ref`: composition / layout only
+  - `asset`: embeddable image
+- policy:
+  - do not treat assets as last resort only
+  - on many technical decks, the strongest result uses 2-4 well-chosen assets, not just a single hero image
+  - default pattern to consider: 1 hero/frame-filling asset plus 1-2 supporting assets on content slides
+  - ask per slide: native, asset, or hybrid
+  - use assets when they replace fake placeholders with real visuals
+  - do not stop at the opener if later slides still need real imagery
+  - keep formulas, labels, connectors, and simple diagrams native
+  - refs do not choose palette, branding, or typography
+- asset background policy:
+  - `background_policy: "frame_fill"` = image owns full panel / frame
+  - `background_policy: "transparent_if_supported"` = isolated object / supporting visual
+  - `background_policy: "paper_match"` = explicit fallback only, not default
+- deck plan fields:
+  - `visual_ref_prompt`
+  - `visual_mode: "asset"`
+  - `visual_asset_id`
+  - `visual_background_policy`
+  - `assets: [...]`
+- example:
 
 ```json
-["img", "BG", 0, 0, 1440, 810, "asset:hero_bg", null, {"bleed": true, "par": "xMidYMid slice"}]
+{
+  "stem": "slide_hero",
+  "visual_mode": "asset",
+  "visual_asset_id": "hero_bg",
+  "visual_background_policy": "frame_fill",
+  "visual_ref_prompt": "Neutral wireframe-like layout reference with a dominant hero region and clear text-safe overlay area. No palette direction.",
+  "assets": [
+    {"id": "detail_inset", "mode": "asset", "role": "supporting_visual", "background_policy": "transparent_if_supported", "prompt": "Clean cropped detail. No text."}
+  ]
+}
 ```
 
-- Reference assets by `asset:<alias>` where alias matches the id in `deck_plan.json`
-- `bleed: true` for frame-filling images
-- `decorative: true` for non-content images
+- generate:
+  - `npm run images -- --project-root /abs/path/to/project`
+  - `npm run images -- --project-root /abs/path/to/project --slide slide_hero --asset hero_bg --retry`
+- outputs:
+  - `assets/refs/`
+  - `assets/generated/`
+  - alias registration in `manifest.json`
+- layout helpers:
+  - `bleed: true`
+  - `decorative: true`
 
 ## Complete slide example
 
@@ -204,7 +284,7 @@ Render block (`rb`):
     ["exp_b", 906, 308, 440, 320, "bdc", "MCP servers expose data and actions as typed tools.", "EXP", {"fs": 21, "ta": "l", "lh": 1.32, "c": "#1A1815", "mc": 200}]
   ],
   "cn": [
-    ["fi", "fan", ["S1:r", "S2:r", "S3:r", "S4:r"], "HUB:l", "ca1", [3.2, 3.2, 3.2, 3.2], {}]
+    ["gi", "fan", ["S1:r", "S2:r", "S3:r", "S4:r"], "HUB:l", "ca1", 420, {"th": 3.2}]
   ]
 }
 ```
