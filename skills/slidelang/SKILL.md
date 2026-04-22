@@ -166,7 +166,8 @@ Each slide is a JSON spec. See `references/dsl.md` for the full DSL reference, b
   "gd": {"page": 18, "attach": 14, "gap": 8, "txtc": 10},
   "el": [
     ["b", "BOX_ID", x, y, w, h, "style", parent_or_null, {opts}],
-    ["m", "MOD_ID", x, y, w, h, "style", parent_or_null, {opts}]
+    ["m", "MOD_ID", x, y, w, h, "style", parent_or_null, {opts}],
+    ["ch", "CHART_ID", x, y, w, h, parent_or_null, {chart_spec}]
   ],
   "tx": [
     ["text_id", x, y, w, h, "style", "Text content", parent_or_null, {opts}]
@@ -181,6 +182,8 @@ Text nodes support TeX math:
 - `$...$` for inline math
 - `$$...$$` for display math
 - `{"math": true}` or `{"math": "display"}` when you want the whole node treated as math without delimiters
+
+Data-bound charts use the `ch` element kind. Reach for it on quantitative slides instead of hand-placing `l` and `c` primitives. Supports `scatter` / `line` / `bar` with log or linear scales, fit lines, and first-class annotations (slope label, point label, reference line). See `references/dsl.md` for the full signature and examples.
 
 Update `manifest.json` to list slides:
 

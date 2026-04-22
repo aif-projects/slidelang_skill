@@ -256,6 +256,81 @@ Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
   - `bleed: true`
   - `decorative: true`
 
+## Charts
+
+- purpose:
+  - data-bound inline SVG charts for quantitative explanatory visuals
+- supported kinds:
+  - `scatter`
+  - `line`
+  - `bar`
+- supported marks:
+  - `dot`
+  - `line`
+  - `fit`
+  - `bar`
+- supported scales:
+  - `linear`
+  - `log`
+- supported axis formats:
+  - `auto`
+  - `int`
+  - `plain`
+  - `usd`
+  - `pct`
+- signature:
+
+```json
+["ch", "curve", 96, 120, 620, 360, null, {
+  "kind": "scatter",
+  "data": [{"x": 1, "y": 80}, {"x": 10, "y": 8}],
+  "x": {"field": "x", "type": "quantitative", "scale": "log", "label": "Cumulative output", "format": "int"},
+  "y": {"field": "y", "type": "quantitative", "scale": "log", "label": "Cost", "format": "usd"},
+  "marks": ["dot", "fit"],
+  "series_color": "cool",
+  "gridlines": {"x": true, "y": true},
+  "annotations": [
+    {"kind": "slope-label", "text": "slope ≈ -0.40", "at": [0.58, 0.42]},
+    {"kind": "point-label", "target": "last", "text": "2023 · $0.15/W", "dx": 12, "dy": -8},
+    {"kind": "reference-line", "axis": "y", "value": 1, "label": "$1/W", "dash": "6 4"}
+  ],
+  "caption": "FIG. 2 — Wright's Law in log-log space."
+}]
+```
+
+- data forms:
+  - flat rows for single-series charts
+  - `[{name, data: [...]}, ...]` for multi-series charts
+  - multi-series line entries may include `dash`, e.g. `{"name":"FLOPs","dash":"7 5","data":[...]}` for deterministic dashed strokes
+- annotations:
+  - `slope-label`: free text positioned by plot-relative `[fx, fy]`
+  - `point-label`: attaches text to `"first"`, `"last"`, or `{series?, index}`
+  - `reference-line`: draws a quantitative rule on axis `x` or `y`
+- notes:
+  - legends are out of scope; use `series.name` plus point labels
+  - bar charts are single-series only in this MVP
+  - axis label/tick typography comes from the theme's micro text tokens
+
+- multi-series line example:
+
+```json
+["ch", "learning_rates", 96, 120, 640, 340, null, {
+  "kind": "line",
+  "data": [
+    {"name": "LR 20%", "data": [{"x": 1, "y": 100}, {"x": 8, "y": 64}]},
+    {"name": "LR 30%", "data": [{"x": 1, "y": 100}, {"x": 8, "y": 49}]}
+  ],
+  "x": {"field": "x", "scale": "log", "label": "Cumulative production", "format": "int"},
+  "y": {"field": "y", "scale": "log", "label": "Cost index", "format": "int"},
+  "marks": ["line", "dot"],
+  "palette": ["cool", "warm"],
+  "annotations": [
+    {"kind": "point-label", "target": {"series": "LR 20%", "index": 1}, "text": "20% LR", "dx": 10, "dy": -8},
+    {"kind": "point-label", "target": {"series": "LR 30%", "index": 1}, "text": "30% LR", "dx": 10, "dy": 16}
+  ]
+}]
+```
+
 ## Complete slide example
 
 ```json
