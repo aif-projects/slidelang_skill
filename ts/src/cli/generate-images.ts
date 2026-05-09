@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { postJson, waitForImageJob, type ImageJobApiResponse } from "../core/imageJobClient.ts";
 import { applyProjectFileDelta, bundleProjectFiles, type ProjectFilePayload } from "../core/projectBundle.ts";
 import { resolveApiBaseUrl } from "../core/paths.ts";
 
@@ -19,32 +20,9 @@ function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
 }
 
-type GenerateImagesApiResponse = Record<string, any> & {
-  files?: ProjectFilePayload[];
-  deleted_paths?: string[];
-};
-
-async function postJson(url: string, payload: unknown): Promise<GenerateImagesApiResponse> {
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  const bodyText = await response.text();
-  const data = bodyText ? JSON.parse(bodyText) : {};
-  if (!response.ok) {
-    const detail =
-      data && typeof data === "object" && "detail" in data
-        ? String((data as Record<string, unknown>).detail)
-        : response.statusText;
-    throw new Error(detail || `HTTP ${response.status}`);
-  }
-  return (data ?? {}) as GenerateImagesApiResponse;
-}
-
 async function applyApiImageResult(
   projectRoot: string,
-  result: GenerateImagesApiResponse,
+  result: ImageJobApiResponse,
 ): Promise<Record<string, any>> {
   const files = Array.isArray(result.files) ? (result.files as ProjectFilePayload[]) : [];
   const deletedPaths = Array.isArray(result.deleted_paths)
@@ -54,6 +32,9 @@ async function applyApiImageResult(
   const next = { ...result };
   delete next.files;
   delete next.deleted_paths;
+  if (next.result && typeof next.result === "object" && !Array.isArray(next.result)) {
+    return next.result as Record<string, any>;
+  }
   return next;
 }
 
@@ -78,7 +59,8 @@ export async function generateImages(
     throw new Error(`manifest.json at ${manifestPath} must contain a project id.`);
   }
   const files = await bundleProjectFiles(projectRoot);
-  const result = await postJson(`${resolveApiBaseUrl()}/api/images/generate`, {
+  const apiBaseUrl = resolveApiBaseUrl();
+  const start = await postJson(`${apiBaseUrl}/api/images/generate`, {
     project,
     workflow: workflow ?? null,
     slide: slide ?? null,
@@ -86,6 +68,9 @@ export async function generateImages(
     retry: retry === true,
     files,
   });
+  const jobId = String(start.job_id ?? "").trim();
+  if (!jobId) throw new Error("Image generation API did not return a job_id.");
+  const result = await waitForImageJob(apiBaseUrl, project, jobId);
   return applyApiImageResult(projectRoot, result);
 }
 

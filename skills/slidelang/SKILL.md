@@ -111,7 +111,7 @@ Visual mode per slide:
 Image guidelines:
 - Do not treat assets as a last resort. Many technical decks benefit from 2-4 assets.
 - Default pattern: 1 hero/frame-filling asset + 1-2 supporting assets on content slides.
-- Use `frame_fill` when the image owns its full panel. Use `transparent_if_supported` for isolated objects.
+- Use `frame_fill` when the image owns its full panel. Use `isolated_plain_background` for isolated objects.
 - Keep formulas, connector logic, labels, and simple diagrams native.
 - Good asset targets: physical scenes, textures, UI collages, illustrative metaphors, anything the layout engine would fake badly.
 

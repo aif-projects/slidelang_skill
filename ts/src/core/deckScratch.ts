@@ -245,7 +245,7 @@ Image generation quickstart:
 - Preferred command from the repo root: \`npm run ts:images -- --project-root ${projectDir}\`
 - That repo CLI calls the SlideLang image API and mirrors generated files back into the local deck.
 - Do not rely on local provider API keys for this path.
-- The server-side image pipeline routes slide refs through Gemini/NB2 and embeddable assets through OpenAI GPT Image 1.5.
+- The server-side image pipeline routes slide refs and embeddable assets through OpenAI GPT Image 2.
 - If \`brief/deck_plan.json\` does not exist yet, write it first with one slide entry per planned slide and include \`stem\`, \`title\`, \`goal\`, and \`visual_ref_prompt\`.
 - For embeddable generated images, add either:
   - \`visual_mode: "asset"\` plus \`visual_asset_id\` on the slide, or
@@ -255,12 +255,12 @@ Image generation quickstart:
 - Keep formulas, labels, connector logic, and simple explanatory diagrams native; use assets for the parts SlideLang cannot fake convincingly.
 - For embeddable assets, set a background policy:
   - \`"background_policy": "frame_fill"\` when the image should fully own its rectangle or panel
-  - \`"background_policy": "transparent_if_supported"\` for isolated supporting visuals
+  - \`"background_policy": "isolated_plain_background"\` for isolated supporting visuals
   - do not default to paper-matched deck backgrounds as a fake matte
 - Generated assets are auto-registered into \`manifest.json\` and written under \`assets/generated/\`.
 - Generated asset metadata and review checklists are written to \`assets/generated/manifest.json\`.
-- Refs use the Google GenAI JavaScript client with \`models/gemini-3.1-flash-image-preview\`.
-- Assets use OpenAI GPT Image 1.5 and request WebP output; transparent assets request transparency when supported.
+- Refs use OpenAI GPT Image 2.
+- Assets use OpenAI GPT Image 2 and store the detected output format.
 - For focused retries, use:
   - \`npm run ts:images -- --project-root ${projectDir} --slide slide_03\`
   - \`npm run ts:images -- --project-root ${projectDir} --slide slide_hero --asset hero_bg --retry\`

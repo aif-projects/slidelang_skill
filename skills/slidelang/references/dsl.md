@@ -222,7 +222,7 @@ Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
   - refs do not choose palette, branding, or typography
 - asset background policy:
   - `background_policy: "frame_fill"` = image owns full panel / frame
-  - `background_policy: "transparent_if_supported"` = isolated object / supporting visual
+  - `background_policy: "isolated_plain_background"` = isolated object / supporting visual
   - `background_policy: "paper_match"` = explicit fallback only, not default
 - deck plan fields:
   - `visual_ref_prompt`
@@ -240,7 +240,7 @@ Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
   "visual_background_policy": "frame_fill",
   "visual_ref_prompt": "Neutral wireframe-like layout reference with a dominant hero region and clear text-safe overlay area. No palette direction.",
   "assets": [
-    {"id": "detail_inset", "mode": "asset", "role": "supporting_visual", "background_policy": "transparent_if_supported", "prompt": "Clean cropped detail. No text."}
+    {"id": "detail_inset", "mode": "asset", "role": "supporting_visual", "background_policy": "isolated_plain_background", "prompt": "Clean cropped detail. No text."}
   ]
 }
 ```
