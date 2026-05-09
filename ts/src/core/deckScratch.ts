@@ -8,7 +8,6 @@ export const DEFAULT_PROJECTS_ROOT = DECKS_DATA_ROOT;
 export interface DeckPlanAsset {
   id: string;
   title?: string;
-  goal?: string;
   prompt?: string;
   mode?: "ref" | "asset";
   role?: string;
@@ -20,22 +19,13 @@ export interface DeckPlanSlide {
   index: number;
   stem: string;
   title: string;
-  goal: string;
-  must_include: string[];
   speaker_note: string;
-  generate_ref?: boolean;
-  visual_ref_prompt: string;
-  visual_mode?: "ref" | "asset";
-  visual_asset_id?: string;
-  visual_role?: string;
-  review_focus?: string[];
   assets?: DeckPlanAsset[];
 }
 
 export interface DeckPlan {
   intent: string;
   project_title: string;
-  deck_goal: string;
   slides: DeckPlanSlide[];
   planner_model?: string | null;
 }
@@ -62,25 +52,17 @@ export function fallbackPlan(intent: string, projectHint: string, slideCount: nu
   ];
   const slides: DeckPlanSlide[] = [];
   for (let index = 0; index < slideCount; index += 1) {
-    const [title, goal] = generic[Math.min(index, generic.length - 1)]!;
+    const [title, note] = generic[Math.min(index, generic.length - 1)]!;
     slides.push({
       index,
       stem: `slide_${String(index).padStart(2, "0")}`,
       title: index > 0 ? title : projectHint,
-      goal: index > 0 ? goal : "Explain the intent clearly at a glance.",
-      must_include: [
-        "Stay faithful to the stated intent and any materials you rely on.",
-        "Prefer an explanatory visual over a text wall.",
-        "Avoid inventing unsupported technical specifics.",
-      ],
-      speaker_note: goal,
-      visual_ref_prompt: `Create a neutral 16:9 technical explainer slide layout reference for '${index > 0 ? title : projectHint}'. Focus on grouping, hierarchy, and spatial composition. Keep the styling grayscale or low-chroma and do not choose the deck palette, branding, or typography. Use boxes/arrows/labels rather than decorative art.`,
+      speaker_note: note,
     });
   }
   return {
     intent,
     project_title: projectHint,
-    deck_goal: "Create a coherent, technically honest explainer deck that fulfills the intent.",
     slides,
   };
 }
@@ -109,7 +91,7 @@ export function scaffoldManifest(projectId: string, deckTitle: string): Record<s
 
 export function buildAuthoringGuide(projectId: string, deckTitle: string, intent: string, plan: DeckPlan | null, projectDir: string): string {
   const slides = plan?.slides?.length
-    ? plan.slides.map((slide) => `- \`${slide.stem}\`: ${slide.title} — ${slide.goal}`).join("\n")
+    ? plan.slides.map((slide) => `- \`${slide.stem}\`: ${slide.title}`).join("\n")
     : "- Decide this yourself from the sources.";
   const planNote = plan?.slides?.length
     ? "An optional planning hypothesis is available in `brief/deck_plan.json`. Treat it as a loose starting point, not a template."
@@ -165,8 +147,8 @@ Authoring rules:
 - Research the topic yourself as needed. Do not assume the scaffold pre-fetched or summarized anything for you.
 - Do not rely on prior deck artifacts or starter slide files. Create the slide specs yourself.
 - Strict benchmark rule: do not create \`decks/main/theme.json\` or any \`decks/main/slide_*.sl.json\` files until the planned generated images already exist on disk. If you author deck files first, the run is invalid and should be restarted with a fresh project id.
-- Generate the planned SlideLang images before authoring the deck: any opt-in slide refs under \`assets/refs/\` and any direct embeddable assets under \`assets/generated/\`.
-- If \`brief/deck_plan.json\` exists, use each slide's \`visual_ref_prompt\` as composition planning text. It only generates a slide ref when \`generate_ref: true\` is set; optional \`assets\` entries generate embeddable images.
+- Generate the planned SlideLang images before authoring the deck: any explicit ref assets under \`assets/refs/\` and any direct embeddable assets under \`assets/generated/\`.
+- If \`brief/deck_plan.json\` exists, image generation reads only explicit \`assets\` entries with \`prompt\`.
 - If \`brief/deck_plan.json\` does not exist yet, write it before running the image CLI.
 - Create the deck theme yourself in \`decks/main/theme.json\`.
 - Create the slide specs yourself under \`decks/main/\`.
@@ -247,10 +229,8 @@ Image generation quickstart:
 - That repo CLI calls the SlideLang image API and mirrors generated files back into the local deck.
 - Do not rely on local provider API keys for this path.
 - The server-side image pipeline routes slide refs and embeddable assets through OpenAI GPT Image 2.
-- If \`brief/deck_plan.json\` does not exist yet, write it first with one slide entry per planned slide and include \`stem\`, \`title\`, \`goal\`, and a concise \`visual_ref_prompt\` planning note. Add \`generate_ref: true\` only for slides where a generated composition image is worth the extra image call.
-- For embeddable generated images, add either:
-  - \`visual_mode: "asset"\` plus \`visual_asset_id\` on the slide, or
-  - an \`assets\` array on the slide with entries like \`{ "id": "hero_bg", "mode": "asset", "prompt": "..." }\`
+- If \`brief/deck_plan.json\` does not exist yet, write it first with one slide entry per planned slide and include \`stem\`, \`title\`, and optional \`assets\` entries.
+- For generated images, add an \`assets\` array on the slide with entries like \`{ "id": "hero_bg", "mode": "asset", "prompt": "..." }\` or \`{ "id": "slide_03_ref", "mode": "ref", "prompt": "..." }\`.
 - Use assets more freely than a fallback escape hatch. They are often the biggest quality jump in a deck when they replace fake placeholder visuals with real imagery, and the strongest technical decks often use more than one.
 - Do not stop at a single hero asset if content slides would be clearer with small supporting visuals.
 - Keep formulas, labels, connector logic, and simple explanatory diagrams native; use assets for the parts SlideLang cannot fake convincingly.

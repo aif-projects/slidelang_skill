@@ -66,7 +66,7 @@ Read `brief/AUTHORING_GUIDE.md` before proceeding — it contains project-specif
 
 ## Phase 2: Plan the deck
 
-Create `brief/deck_plan.json` in the project directory. This defines every slide, its goal, visual mode, and any image generation prompts.
+Create `brief/deck_plan.json` in the project directory. This defines every slide and any explicit image generation prompts.
 
 Structure:
 
@@ -78,18 +78,11 @@ Structure:
     {
       "stem": "slide_00",
       "title": "Slide Title",
-      "goal": "What this slide should accomplish for the viewer.",
-      "visual_ref_prompt": "Composition planning note. Placeholder lorem only, no real text.",
-      "visual_mode": "native"
+      "assets": []
     },
     {
       "stem": "slide_01",
       "title": "Hero Slide",
-      "goal": "...",
-      "visual_ref_prompt": "...",
-      "visual_mode": "asset",
-      "visual_asset_id": "hero_bg",
-      "visual_background_policy": "frame_fill",
       "assets": [
         {
           "id": "hero_bg",
@@ -107,7 +100,7 @@ Visual mode per slide:
 - `native` — boxes, arrows, text, diagrams drawn by the layout engine
 - `asset` — uses a generated image (hero, illustration, etc.)
 - `hybrid` — combines native elements with a generated image
-- `generate_ref: true` — optional per-slide flag for generating a composition ref from `visual_ref_prompt`
+- `assets[].mode: "ref"` — optional explicit composition ref image
 
 Image guidelines:
 - Do not treat assets as a last resort. Many technical decks benefit from 2-4 assets.
@@ -123,7 +116,7 @@ npm run images -- --project-root <project-dir>
 ```
 
 This reads `brief/deck_plan.json` and generates:
-- Opt-in composition refs under `assets/refs/` for slides with `generate_ref: true` (layout guidance only, not on final slides)
+- Explicit composition refs under `assets/refs/` for `assets[]` entries with `mode: "ref"` (layout guidance only, not on final slides)
 - Embeddable assets under `assets/generated/` (appear on final slides)
 - Auto-registers assets in `manifest.json`
 

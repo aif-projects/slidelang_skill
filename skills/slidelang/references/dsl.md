@@ -225,22 +225,17 @@ Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
   - `background_policy: "isolated_plain_background"` = isolated object / supporting visual
   - `background_policy: "paper_match"` = explicit fallback only, not default
 - deck plan fields:
-  - `visual_ref_prompt`
-  - `generate_ref: true` for individual slides that should get a generated composition ref
-  - `visual_mode: "asset"`
-  - `visual_asset_id`
-  - `visual_background_policy`
   - `assets: [...]`
+  - `mode: "ref"` for generated composition refs
+  - `mode: "asset"` for generated embeddable images
+  - `background_policy` for asset entries
 - example:
 
 ```json
 {
   "stem": "slide_hero",
-  "visual_mode": "asset",
-  "visual_asset_id": "hero_bg",
-  "visual_background_policy": "frame_fill",
-  "visual_ref_prompt": "Dominant hero region with a clear text-safe overlay area.",
   "assets": [
+    {"id": "hero_bg", "mode": "asset", "role": "hero_bg", "background_policy": "frame_fill", "prompt": "Dominant hero background with a clear text-safe overlay area. No text."},
     {"id": "detail_inset", "mode": "asset", "role": "supporting_visual", "background_policy": "isolated_plain_background", "prompt": "Clean cropped detail. No text."}
   ]
 }
