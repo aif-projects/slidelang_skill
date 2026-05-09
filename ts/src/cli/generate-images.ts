@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { postJson, waitForImageJob, type ImageJobApiResponse } from "../core/imageJobClient.ts";
 import { applyProjectFileDelta, bundleProjectFiles, type ProjectFilePayload } from "../core/projectBundle.ts";
 import { resolveApiBaseUrl } from "../core/paths.ts";
+import { updateSkillRepoBeforeRun } from "../core/selfUpdate.ts";
 
 function argValue(argv: string[], flag: string): string | null {
   const index = argv.indexOf(flag);
@@ -75,6 +76,7 @@ export async function generateImages(
 }
 
 export async function main(argv = process.argv.slice(2)): Promise<void> {
+  await updateSkillRepoBeforeRun(import.meta.url);
   const projectRoot = path.resolve(argValue(argv, "--project-root") ?? process.cwd());
   const result = await generateImages(projectRoot, {
     slide: argValue(argv, "--slide"),

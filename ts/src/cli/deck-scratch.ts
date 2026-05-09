@@ -2,6 +2,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { DEFAULT_PROJECTS_ROOT, scaffoldProject } from "../core/deckScratch.ts";
+import { updateSkillRepoBeforeRun } from "../core/selfUpdate.ts";
 
 function argValue(argv: string[], flag: string): string | null {
   const index = argv.indexOf(flag);
@@ -22,6 +23,7 @@ function requireArg(argv: string[], flag: string, label: string): string {
 }
 
 export async function main(argv = process.argv.slice(2)): Promise<void> {
+  await updateSkillRepoBeforeRun(import.meta.url);
   const projectId = requireArg(argv, "--project-id", "--project-id").trim();
   const intent = requireArg(argv, "--intent", "--intent").trim();
   const projectsRoot = path.resolve(argValue(argv, "--projects-root") ?? DEFAULT_PROJECTS_ROOT);

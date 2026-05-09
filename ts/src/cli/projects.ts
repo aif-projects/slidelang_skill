@@ -5,6 +5,7 @@ import { bundleProjectFiles, replaceProjectSourceFiles } from "../core/projectBu
 import { DECKS_DATA_ROOT, resolveApiBaseUrl } from "../core/paths.ts";
 import { readWorkflowCloudSync, writeWorkflowCloudSync } from "../core/cloudSync.ts";
 import { type RelativeFilePayload, writeRelativeFiles } from "../core/relativeFileBundle.ts";
+import { updateSkillRepoBeforeRun } from "../core/selfUpdate.ts";
 
 function usage(): never {
   throw new Error(
@@ -140,6 +141,7 @@ async function mirrorPublishedArtifacts(
 // ---------------------------------------------------------------------------
 
 async function main(): Promise<void> {
+  await updateSkillRepoBeforeRun(import.meta.url);
   const command = process.argv[2];
   if (!command) usage();
   const apiBaseUrl = resolveApiBaseUrl();
