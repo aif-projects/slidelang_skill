@@ -23,6 +23,7 @@ export interface DeckPlanSlide {
   goal: string;
   must_include: string[];
   speaker_note: string;
+  generate_ref?: boolean;
   visual_ref_prompt: string;
   visual_mode?: "ref" | "asset";
   visual_asset_id?: string;
@@ -163,9 +164,9 @@ Authoring rules:
 - Choose the deck title yourself and update \`manifest.json\` once you know it.
 - Research the topic yourself as needed. Do not assume the scaffold pre-fetched or summarized anything for you.
 - Do not rely on prior deck artifacts or starter slide files. Create the slide specs yourself.
-- Strict benchmark rule: do not create \`decks/main/theme.json\` or any \`decks/main/slide_*.sl.json\` files until the planned slide refs already exist on disk. If you author deck files first, the run is invalid and should be restarted with a fresh project id.
-- Generate the planned SlideLang images before authoring the deck: slide refs under \`assets/refs/\` and any direct embeddable assets under \`assets/generated/\`.
-- If \`brief/deck_plan.json\` exists, use each slide's \`visual_ref_prompt\` and optional \`assets\` entries as the starting point for image generation.
+- Strict benchmark rule: do not create \`decks/main/theme.json\` or any \`decks/main/slide_*.sl.json\` files until the planned generated images already exist on disk. If you author deck files first, the run is invalid and should be restarted with a fresh project id.
+- Generate the planned SlideLang images before authoring the deck: any opt-in slide refs under \`assets/refs/\` and any direct embeddable assets under \`assets/generated/\`.
+- If \`brief/deck_plan.json\` exists, use each slide's \`visual_ref_prompt\` as composition planning text. It only generates a slide ref when \`generate_ref: true\` is set; optional \`assets\` entries generate embeddable images.
 - If \`brief/deck_plan.json\` does not exist yet, write it before running the image CLI.
 - Create the deck theme yourself in \`decks/main/theme.json\`.
 - Create the slide specs yourself under \`decks/main/\`.
@@ -246,7 +247,7 @@ Image generation quickstart:
 - That repo CLI calls the SlideLang image API and mirrors generated files back into the local deck.
 - Do not rely on local provider API keys for this path.
 - The server-side image pipeline routes slide refs and embeddable assets through OpenAI GPT Image 2.
-- If \`brief/deck_plan.json\` does not exist yet, write it first with one slide entry per planned slide and include \`stem\`, \`title\`, \`goal\`, and \`visual_ref_prompt\`.
+- If \`brief/deck_plan.json\` does not exist yet, write it first with one slide entry per planned slide and include \`stem\`, \`title\`, \`goal\`, and a concise \`visual_ref_prompt\` planning note. Add \`generate_ref: true\` only for slides where a generated composition image is worth the extra image call.
 - For embeddable generated images, add either:
   - \`visual_mode: "asset"\` plus \`visual_asset_id\` on the slide, or
   - an \`assets\` array on the slide with entries like \`{ "id": "hero_bg", "mode": "asset", "prompt": "..." }\`
@@ -259,7 +260,7 @@ Image generation quickstart:
   - do not default to paper-matched deck backgrounds as a fake matte
 - Generated assets are auto-registered into \`manifest.json\` and written under \`assets/generated/\`.
 - Generated asset metadata and review checklists are written to \`assets/generated/manifest.json\`.
-- Refs use OpenAI GPT Image 2.
+- Opt-in refs use OpenAI GPT Image 2.
 - Assets use OpenAI GPT Image 2 and store the detected output format.
 - For focused retries, use:
   - \`npm run ts:images -- --project-root ${projectDir} --slide slide_03\`
@@ -314,9 +315,9 @@ Rules of thumb:
 - Choose the deck title deliberately; the scaffold title is only a placeholder until you set one.
 - Stay faithful to your stated intent and any materials you decide to rely on.
 - Stay editable: do not embed raster images as the final diagram.
-- Decide the slide arc first, then generate the planned slide refs and embeddable assets before authoring the deck.
+- Decide the slide arc first, then generate the planned opt-in refs and embeddable assets before authoring the deck.
 - Name refs with slide-linked filenames like \`slide_00_ref\`, \`slide_01_ref\`, and so on; the CLI will write the provider-native image extension.
-- Do not create any files under \`decks/main/\` until the per-slide refs already exist on disk.
+- Do not create any files under \`decks/main/\` until the planned generated images already exist on disk.
 - Let each slide's ref guide composition and spatial positioning for that slide only.
 - Do not let refs choose the deck palette, font, or overall brand treatment.
 - Use refs as art direction only; keep the final deck native and editable.
@@ -349,9 +350,9 @@ Suggested first-pass workflow:
 2. Choose the deck title and research path yourself.
 3. Decide the deck arc.
 4. Write \`brief/deck_plan.json\` if it does not exist yet.
-5. Run \`npm run ts:images -- --project-root ${projectDir}\` to generate the planned refs and embeddable assets through the image API.
+5. Run \`npm run ts:images -- --project-root ${projectDir}\` to generate the planned opt-in refs and embeddable assets through the image API.
 6. Review any generated assets visually against the generated checklist and rerun with \`--retry\` if needed.
-7. Confirm the refs exist on disk before authoring anything under \`decks/main/\`.
+7. Confirm the planned generated images exist on disk before authoring anything under \`decks/main/\`.
 8. Create \`decks/main/theme.json\` from the chosen direction.
 9. Create \`decks/main/slide_00.sl.json\`, \`slide_01.sl.json\`, ...
 10. Update \`manifest.json\` workflow slides.
@@ -371,7 +372,7 @@ Success criteria:
 Final response requirements:
 - final status with the exact \`ok\`, \`publish_ok\`, and \`clean_ok\` values
 - files changed
-- which planned refs/assets you generated and used
+- which planned opt-in refs/assets you generated and used
 - what was hardest about getting to clean_ok
 - 2-4 short feedback points about the toolchain, with at least:
   - one thing that worked well

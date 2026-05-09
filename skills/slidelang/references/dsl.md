@@ -226,6 +226,7 @@ Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
   - `background_policy: "paper_match"` = explicit fallback only, not default
 - deck plan fields:
   - `visual_ref_prompt`
+  - `generate_ref: true` for individual slides that should get a generated composition ref
   - `visual_mode: "asset"`
   - `visual_asset_id`
   - `visual_background_policy`
@@ -238,7 +239,7 @@ Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
   "visual_mode": "asset",
   "visual_asset_id": "hero_bg",
   "visual_background_policy": "frame_fill",
-  "visual_ref_prompt": "Neutral wireframe-like layout reference with a dominant hero region and clear text-safe overlay area. No palette direction.",
+  "visual_ref_prompt": "Dominant hero region with a clear text-safe overlay area.",
   "assets": [
     {"id": "detail_inset", "mode": "asset", "role": "supporting_visual", "background_policy": "isolated_plain_background", "prompt": "Clean cropped detail. No text."}
   ]
@@ -249,7 +250,7 @@ Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
   - `npm run images -- --project-root /abs/path/to/project`
   - `npm run images -- --project-root /abs/path/to/project --slide slide_hero --asset hero_bg --retry`
 - outputs:
-  - `assets/refs/`
+  - opt-in refs in `assets/refs/`
   - `assets/generated/`
   - alias registration in `manifest.json`
 - layout helpers:

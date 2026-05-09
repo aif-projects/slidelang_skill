@@ -79,7 +79,7 @@ Structure:
       "stem": "slide_00",
       "title": "Slide Title",
       "goal": "What this slide should accomplish for the viewer.",
-      "visual_ref_prompt": "Composition reference prompt for layout planning. Placeholder lorem only, no real text.",
+      "visual_ref_prompt": "Composition planning note. Placeholder lorem only, no real text.",
       "visual_mode": "native"
     },
     {
@@ -107,6 +107,7 @@ Visual mode per slide:
 - `native` — boxes, arrows, text, diagrams drawn by the layout engine
 - `asset` — uses a generated image (hero, illustration, etc.)
 - `hybrid` — combines native elements with a generated image
+- `generate_ref: true` — optional per-slide flag for generating a composition ref from `visual_ref_prompt`
 
 Image guidelines:
 - Do not treat assets as a last resort. Many technical decks benefit from 2-4 assets.
@@ -122,7 +123,7 @@ npm run images -- --project-root <project-dir>
 ```
 
 This reads `brief/deck_plan.json` and generates:
-- Composition refs under `assets/refs/` (layout guidance only, not on final slides)
+- Opt-in composition refs under `assets/refs/` for slides with `generate_ref: true` (layout guidance only, not on final slides)
 - Embeddable assets under `assets/generated/` (appear on final slides)
 - Auto-registers assets in `manifest.json`
 
@@ -133,7 +134,7 @@ npm run images -- --project-root <project-dir> --slide slide_03
 npm run images -- --project-root <project-dir> --slide slide_00 --asset hero_bg --retry
 ```
 
-Generate refs/assets before creating slide files — slides that reference missing assets will fail validation.
+Generate planned opt-in refs/assets before creating slide files — slides that reference missing assets will fail validation.
 
 ## Phase 4: Author the deck
 
@@ -280,7 +281,7 @@ All commands run from the skill root via `npm run`. Set `DECKS_DATA_ROOT` to con
 
 ```bash
 npm run deck-scratch -- --project-id <id> --intent "<intent>"  # scaffold new project
-npm run images -- --project-root <project-dir>                  # generate refs and assets
+npm run images -- --project-root <project-dir>                  # generate opt-in refs and assets
 npm run projects -- list                                        # list all projects
 npm run projects -- show <project>                              # inspect a project
 npm run projects -- pull <project> slidemaker                   # pull latest from hosted
