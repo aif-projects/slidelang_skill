@@ -236,6 +236,7 @@ Image generation quickstart:
 - Keep formulas, labels, connector logic, and simple explanatory diagrams native; use assets for the parts SlideLang cannot fake convincingly.
 - For embeddable assets, set a background policy:
   - \`"background_policy": "frame_fill"\` when the image should fully own its rectangle or panel
+    - frame-fill assets are generated as landscape sources and normalized to 16:9 WebP; write prompts with central 16:9 crop-safe composition and expendable top/bottom bleed
   - \`"background_policy": "isolated_plain_background"\` for isolated supporting visuals
   - do not default to paper-matched deck backgrounds as a fake matte
 - Generated assets are auto-registered into \`manifest.json\` and written under \`assets/generated/\`.

@@ -222,6 +222,7 @@ Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
   - refs do not choose palette, branding, or typography
 - asset background policy:
   - `background_policy: "frame_fill"` = image owns full panel / frame
+    - frame-fill assets are generated as landscape sources and normalized to 16:9 WebP; prompts should keep important content inside the central 16:9 crop-safe area
   - `background_policy: "isolated_plain_background"` = isolated object / supporting visual
   - `background_policy: "paper_match"` = explicit fallback only, not default
 - deck plan fields:
