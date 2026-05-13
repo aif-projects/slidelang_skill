@@ -128,7 +128,7 @@ Generate planned opt-in refs/assets before creating slide files — slides that 
 
 ### Optional: register local videos
 
-If the user has video files to embed, keep them under `<project-dir>/media/`, not under `assets/`. The `assets/` directory is bundled into deck revisions; `media/` is local-only input for bucket upload.
+If the user has video files to embed, keep them under `<project-dir>/media/`, not under `assets/`. The `assets/` directory is bundled into deck revisions; `media/` is local-only input for hosted upload.
 
 Register each video before authoring slides that reference it:
 
@@ -136,7 +136,7 @@ Register each video before authoring slides that reference it:
 npm run media -- upload --project-root <project-dir> --workflow slidemaker --id <asset-id> --file media/<filename>.mp4
 ```
 
-For localhost bucket QA with MinIO or another S3-compatible service, set `S3_ENDPOINT`, `S3_BUCKET`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, and `S3_FORCE_PATH_STYLE=true`. Use `--ensure-bucket` on the first local upload if the bucket does not exist.
+The upload command sends the video to the SlideLang API. Do not ask the user for S3 or Railway bucket credentials; hosted SlideLang stores the object in its configured bucket and returns the manifest asset record.
 
 Use the registered asset with the `vid` element:
 

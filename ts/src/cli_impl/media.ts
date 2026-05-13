@@ -1,22 +1,9 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-import { config as loadDotenv } from "dotenv";
-
-import {
-  createMediaStorageClient,
-  ensureMediaBucket,
-  mediaFileInfo,
-  uploadMediaObject,
-} from "../core/mediaStorage.ts";
-import { ROOT } from "../core/paths.ts";
-
-function loadEnv(repoRoot: string): void {
-  for (const candidate of [path.join(repoRoot, ".env"), path.join(path.dirname(repoRoot), "slides", ".env")]) {
-    loadDotenv({ path: candidate, override: false, quiet: true });
-  }
-  loadDotenv({ override: false, quiet: true });
-}
+import { postJson } from "../core/imageJobClient.ts";
+import { mediaFileInfo } from "../core/mediaStorage.ts";
+import { resolveApiBaseUrl } from "../core/paths.ts";
 
 function argValue(argv: string[], flag: string): string | null {
   const index = argv.indexOf(flag);
@@ -69,17 +56,11 @@ function workflowAssets(manifest: Record<string, any>, workflowName: string): Ar
   return workflow.assets as Array<Record<string, unknown>>;
 }
 
-function mediaObjectKey(projectId: string, assetId: string, sha256: string, filePath: string): string {
-  const ext = path.extname(filePath).toLowerCase() || ".bin";
-  return `projects/${projectId}/media/${assetId}/${sha256}/original${ext}`;
-}
-
 export async function uploadMediaAsset(
   projectRoot: string,
   workflowName: string,
   assetId: string,
   filePathRaw: string,
-  { ensureBucket = false }: { ensureBucket?: boolean } = {},
 ): Promise<Record<string, unknown>> {
   const manifestPath = path.join(projectRoot, "manifest.json");
   const manifest = await readJson(manifestPath);
@@ -88,21 +69,26 @@ export async function uploadMediaAsset(
   const filePath = path.resolve(projectRoot, filePathRaw);
   const src = projectRelative(projectRoot, filePath);
   const info = await mediaFileInfo(filePath);
-  const key = mediaObjectKey(projectId, assetId, info.sha256, filePath);
-  const client = createMediaStorageClient();
-  if (ensureBucket) await ensureMediaBucket(client);
-  await uploadMediaObject(client, key, filePath, info);
-
-  const assets = workflowAssets(manifest, workflowName);
-  const nextAsset = {
-    id: assetId,
-    kind: "video",
-    src,
-    bucket_key: key,
+  const upload = await postJson(`${resolveApiBaseUrl()}/api/media/upload`, {
+    project: projectId,
+    workflow: workflowName,
+    asset_id: assetId,
     filename: path.basename(filePath),
     content_type: info.contentType,
-    bytes: info.bytes,
-    sha256: info.sha256,
+    content_base64: await fs.readFile(filePath, "base64"),
+  });
+
+  const assets = workflowAssets(manifest, workflowName);
+  const uploadedAsset = asRecord(upload.asset);
+  const nextAsset = {
+    id: String(uploadedAsset.id ?? assetId),
+    kind: "video",
+    src,
+    bucket_key: String(uploadedAsset.bucket_key ?? ""),
+    filename: String(uploadedAsset.filename ?? path.basename(filePath)),
+    content_type: String(uploadedAsset.content_type ?? info.contentType),
+    bytes: Number(uploadedAsset.bytes ?? info.bytes),
+    sha256: String(uploadedAsset.sha256 ?? info.sha256),
   };
   const index = assets.findIndex((asset) => String(asset.id ?? "") === assetId);
   if (index >= 0) assets[index] = nextAsset;
@@ -127,16 +113,16 @@ export async function listMediaAssets(projectRoot: string, workflowName: string)
 }
 
 export async function main(argv = process.argv.slice(2)): Promise<void> {
-  loadEnv(ROOT);
   const command = argv[0];
   const projectRoot = path.resolve(argValue(argv, "--project-root") ?? process.cwd());
   const workflow = argValue(argv, "--workflow") ?? "slidemaker";
   if (command === "upload") {
     const file = argValue(argv, "--file");
     if (!file) usage();
-    const result = await uploadMediaAsset(projectRoot, workflow, safeAssetId(argValue(argv, "--id")), file, {
-      ensureBucket: hasFlag(argv, "--ensure-bucket"),
-    });
+    if (hasFlag(argv, "--ensure-bucket")) {
+      process.stderr.write("slidelang media upload: --ensure-bucket is ignored; hosted SlideLang manages the bucket.\n");
+    }
+    const result = await uploadMediaAsset(projectRoot, workflow, safeAssetId(argValue(argv, "--id")), file);
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
     return;
   }
