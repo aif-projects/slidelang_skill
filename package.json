@@ -5,13 +5,17 @@
   "scripts": {
     "deck-scratch": "tsx ts/src/cli/deck-scratch.ts",
     "images": "tsx ts/src/cli/generate-images.ts",
+    "media": "tsx ts/src/cli/media.ts",
     "projects": "tsx ts/src/cli/projects.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1045.0",
+    "dotenv": "^17.4.2",
+    "tslib": "^2.8.1",
     "tsx": "^4.21.0"
   },
   "devDependencies": {
-    "typescript": "^5.8.3",
-    "@types/node": "^24.0.0"
+    "@types/node": "^24.0.0",
+    "typescript": "^5.8.3"
   }
 }

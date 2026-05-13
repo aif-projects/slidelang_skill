@@ -129,6 +129,26 @@ npm run images -- --project-root <project-dir> --slide slide_00 --asset hero_bg 
 
 Generate planned opt-in refs/assets before creating slide files — slides that reference missing assets will fail validation.
 
+### Optional: register local videos
+
+If the user has video files to embed, keep them under `<project-dir>/media/`, not under `assets/`. The `assets/` directory is bundled into deck revisions; `media/` is local-only input for bucket upload.
+
+Register each video before authoring slides that reference it:
+
+```bash
+npm run media -- upload --project-root <project-dir> --workflow slidemaker --id <asset-id> --file media/<filename>.mp4
+```
+
+For localhost bucket QA with MinIO or another S3-compatible service, set `S3_ENDPOINT`, `S3_BUCKET`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, and `S3_FORCE_PATH_STYLE=true`. Use `--ensure-bucket` on the first local upload if the bucket does not exist.
+
+Use the registered asset with the `vid` element:
+
+```json
+["vid", "CLIP", 160, 140, 960, 540, "asset:<asset-id>", null, {"controls": true, "fit": "contain"}]
+```
+
+Use `fit: "contain"` unless intentional crop is acceptable. `autoplay: true` is muted automatically by the renderer.
+
 ## Phase 4: Author the deck
 
 ### 4a. Create the theme
@@ -161,6 +181,7 @@ Each slide is a JSON spec. See `references/dsl.md` for the full DSL reference, b
   "el": [
     ["b", "BOX_ID", x, y, w, h, "style", parent_or_null, {opts}],
     ["m", "MOD_ID", x, y, w, h, "style", parent_or_null, {opts}],
+    ["vid", "VIDEO_ID", x, y, w, h, "asset:video_asset_id", parent_or_null, {"controls": true, "fit": "contain"}],
     ["ch", "CHART_ID", x, y, w, h, parent_or_null, {chart_spec}]
   ],
   "tx": [
