@@ -136,7 +136,7 @@ Register each video before authoring slides that reference it:
 npm run media -- upload --project-root <project-dir> --workflow slidemaker --id <asset-id> --file media/<filename>.mp4
 ```
 
-The upload command sends the video to the SlideLang API. Do not ask the user for S3 or Railway bucket credentials; hosted SlideLang stores the object in its configured bucket and returns the manifest asset record.
+The upload command sends the video to the SlideLang API and writes the returned manifest asset record.
 
 Use the registered asset with the `vid` element:
 

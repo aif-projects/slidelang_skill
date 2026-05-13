@@ -11,10 +11,6 @@ function argValue(argv: string[], flag: string): string | null {
   return argv[index + 1] ?? null;
 }
 
-function hasFlag(argv: string[], flag: string): boolean {
-  return argv.includes(flag);
-}
-
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
@@ -119,9 +115,6 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
   if (command === "upload") {
     const file = argValue(argv, "--file");
     if (!file) usage();
-    if (hasFlag(argv, "--ensure-bucket")) {
-      process.stderr.write("slidelang media upload: --ensure-bucket is ignored; hosted SlideLang manages the bucket.\n");
-    }
     const result = await uploadMediaAsset(projectRoot, workflow, safeAssetId(argValue(argv, "--id")), file);
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
     return;
