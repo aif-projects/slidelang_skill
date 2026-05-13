@@ -32,7 +32,10 @@ After installing, run from the skill root (this repo's directory):
 
 ```bash
 npm install
+npm run self-update
 ```
+
+The skill also self-updates before normal CLI commands when it is a clean `main` checkout of `aif-projects/slidelang_skill`. Run `npm run guide` to print the current authoring workflow after updating.
 
 ## Usage
 

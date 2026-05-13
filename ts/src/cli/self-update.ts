@@ -3,10 +3,9 @@ import { fileURLToPath } from "node:url";
 
 import { updateSkillRepoBeforeRun } from "../core/selfUpdate.ts";
 
-export async function main(argv = process.argv.slice(2)): Promise<void> {
-  await updateSkillRepoBeforeRun(import.meta.url);
-  const impl = await import("../cli_impl/deck-scratch.ts");
-  await impl.main(argv);
+export async function main(): Promise<void> {
+  const result = await updateSkillRepoBeforeRun(import.meta.url);
+  process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

@@ -4,9 +4,11 @@
   "type": "module",
   "scripts": {
     "deck-scratch": "tsx ts/src/cli/deck-scratch.ts",
+    "guide": "tsx ts/src/cli/guide.ts",
     "images": "tsx ts/src/cli/generate-images.ts",
     "media": "tsx ts/src/cli/media.ts",
-    "projects": "tsx ts/src/cli/projects.ts"
+    "projects": "tsx ts/src/cli/projects.ts",
+    "self-update": "tsx ts/src/cli/self-update.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1045.0",
