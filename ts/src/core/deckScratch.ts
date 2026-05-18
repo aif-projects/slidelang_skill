@@ -152,9 +152,10 @@ Authoring rules:
 - If \`brief/deck_plan.json\` does not exist yet, write it before running the image CLI.
 - Create the deck theme yourself in \`decks/main/theme.json\`.
 - Create the slide specs yourself under \`decks/main/\`.
+- Before authoring slide specs, choose a container strategy for this deck: mostly unboxed/whitespace-led, square editorial panels, diagram nodes, or intentionally rounded cards. Do not default to rounded card rows.
 - Stay faithful to the intent and to any materials you decide to rely on. If confidence is low, simplify instead of inventing specifics.
 - Keep the result editable in native SlideLang. Do not turn the final deck into raster art.
-- Use native SlideLang for visuals the layout engine can draw well: boxes, arrows, formulas, stacks, simple diagrams.
+- Use native SlideLang for visuals the layout engine can draw well: spatial labels, connectors, formulas, tables, simple diagrams, and only the containers the slide genuinely needs.
 - Use generated assets for visuals SlideLang would fake badly: point clouds, textures, continuous gradients, physical scenes, illustrative metaphors.
 - Do not treat assets as a last-resort exception. On many technical decks, the best result uses 2-4 embeddable assets, not just a single hero image.
 - Default pattern to consider: 1 hero/frame-filling asset plus 1-2 supporting assets on content slides.
@@ -213,7 +214,7 @@ Theme rules:
 - On dark paper, subtle borders usually fail lint. Make \`line\` materially lighter than the background, even if a lower-contrast stroke looks prettier by eye.
 
 Common token cheat sheet:
-- Box styles: \`pn\` = primary neutral panel, \`cl\` = clear container, \`sqw\` = square neutral panel, \`sqg\` = square muted panel, \`sqb\` = square cool panel, \`kd\` = dark key panel.
+- Box styles: \`cl\` = invisible layout container, \`pn\` = neutral panel, \`sqw\` / \`sqg\` / \`sqb\` = stronger editorial panels, \`kd\` = dark key panel. Box styles are square by default. Use \`{"rx": 18}\` only when rounded cards are part of the chosen design direction.
 - Text styles: \`ttc\` = title, \`sec\` = section label, \`mic\` = body copy, \`lab\` = small label, \`smc\` = compact small copy.
 - Connector styles: \`ca\` / \`cb\` = arrow families, \`dv\` = divider line.
 - Use \`manifest.json\` and the repo README as the full reference if you need less common tokens.
@@ -262,11 +263,11 @@ Common connector examples:
 Worked grouped inbound recipe:
 
 \`\`\`json
-["b", "S1", 120, 180, 180, 72, "pn", null],
-["b", "S2", 120, 282, 180, 72, "pn", null],
-["b", "S3", 120, 384, 180, 72, "pn", null],
-["b", "S4", 120, 486, 180, 72, "pn", null],
-["b", "HUB", 840, 300, 220, 150, "pn", null],
+["b", "S1", 120, 180, 180, 72, "cl", null],
+["b", "S2", 120, 282, 180, 72, "cl", null],
+["b", "S3", 120, 384, 180, 72, "cl", null],
+["b", "S4", 120, 486, 180, 72, "cl", null],
+["b", "HUB", 840, 300, 220, 150, "sqw", null],
 ["gi", "cFan", ["S1:r", "S2:r", "S3:r", "S4:r"], "HUB:l", "ca1", 540, {"th": 3.2}]
 \`\`\`
 
@@ -288,11 +289,12 @@ Image layout helpers:
 
 Rules of thumb:
 - Use real \`cn\` connectors. Do not fake arrows with ASCII text.
-- Prefer boxes, lanes, and connectors over text walls.
+- Prefer spatial structure, labels, lanes, and connectors over text walls. Use visible boxes only when they add grouping, hierarchy, or diagram meaning.
 - Keep IDs stable and descriptive.
 - Do not put \`th\` in slide specs. Define deck styling in \`decks/main/theme.json\` instead.
 - Treat \`mc\` as optional. If you omit it, the compiler derives the current char count automatically.
 - \`kd\` forces light child text by design. If you parent dark text inside a \`kd\` panel, the panel style will override it.
+- Visible boxes are square by default. Add an explicit \`rx\` option only for a deliberately rounded card language.
 - Choose the deck title deliberately; the scaffold title is only a placeholder until you set one.
 - Stay faithful to your stated intent and any materials you decide to rely on.
 - Stay editable: do not embed raster images as the final diagram.

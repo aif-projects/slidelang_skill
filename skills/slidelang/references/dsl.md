@@ -47,6 +47,7 @@ Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
 - wrong-group example:
   - `pn` is a `box` style, so `["l", ..., "pn"]` is invalid
   - use a `shape` style like `dv` or `ink` on `l`
+- box styles are square by default; add `{"rx": 18}` to a specific `m` or `b` only when rounded cards are intentional
 
 ## Ops
 
@@ -191,6 +192,7 @@ Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
   - oversized text node `h` counts against density even if copy is short
   - keep text-node `h` tight
 - `mc` on text nodes is optional; compiler derives it from current string length
+- `rx` on `m` / `b` opts explicitly rounds that one rectangle; omit it for square editorial panels
 
 ## Theme Inheritance
 
@@ -337,10 +339,10 @@ Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
   "meta": {"id": "slide_03", "title": "Tools and MCP"},
   "gd": {"page": 18, "attach": 14, "gap": 8, "txtc": 10},
   "el": [
-    ["b", "S1", 100, 220, 220, 76, "pn", null, {"cp": 16}],
-    ["b", "S2", 100, 312, 220, 76, "pn", null, {"cp": 16}],
-    ["b", "S3", 100, 404, 220, 76, "pn", null, {"cp": 16}],
-    ["b", "S4", 100, 496, 220, 76, "pn", null, {"cp": 16}],
+    ["b", "S1", 100, 220, 220, 76, "cl", null, {"cp": 16}],
+    ["b", "S2", 100, 312, 220, 76, "cl", null, {"cp": 16}],
+    ["b", "S3", 100, 404, 220, 76, "cl", null, {"cp": 16}],
+    ["b", "S4", 100, 496, 220, 76, "cl", null, {"cp": 16}],
     ["b", "HUB", 540, 296, 280, 200, "kd", null, {"cp": 24}],
     ["b", "EXP", 880, 220, 488, 432, "sqb", null, {"cp": 28}]
   ],

@@ -94,7 +94,7 @@ Structure:
 ```
 
 Visual mode per slide:
-- `native` — boxes, arrows, text, diagrams drawn by the layout engine
+- `native` — spatial labels, connectors, text, charts, and diagrams drawn by the layout engine
 - `asset` — uses a generated image (hero, illustration, etc.)
 - `hybrid` — combines native elements with a generated image
 - `assets[].mode: "ref"` — optional explicit composition ref image
@@ -162,10 +162,13 @@ Create `decks/main/theme.json` in the project directory with colors and fonts fo
 - If you see a style-group error, the usual cause is using a token from the wrong group. Example: `pn` is valid on `b` but invalid on `l`.
 - On dark themes, `line` must be materially lighter than `paper` or contrast lint will fail.
 - Choose a unique design direction per deck — do not copy themes from other decks.
+- Box styles are square by default. Use an explicit `{"rx": 18}` option only when rounded cards are part of the chosen design direction.
 
 ### 4b. Author slides
 
 Create `decks/main/slide_00.sl.json`, `slide_01.sl.json`, etc. in the project directory.
+
+Before writing slide specs, choose a container strategy for the deck: mostly unboxed/whitespace-led, square editorial panels, diagram nodes, or intentionally rounded cards. Do not default to rounded card rows.
 
 Each slide is a JSON spec. See `references/dsl.md` for the full DSL reference, but the core structure:
 
