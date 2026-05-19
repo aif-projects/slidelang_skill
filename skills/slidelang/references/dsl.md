@@ -39,7 +39,7 @@ Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
   - `text` styles for `tx`
   - `conn` styles for `cn`
 - common derived tokens by group (non-exhaustive):
-  - `box`: `pn`, `qa`, `qb`, `kd`, `sqw`, `sqb`, `dst`
+  - `box`: `pn`, `pnb`, `qa`, `qb`, `kd`, `kdb`, `sqw`, `sqb`, `dst`
   - `shape`: `dv`, `ink`, `oc`, `ocg`, `cb`
   - `text`: `ttc`, `sec`, `bdc`, `mic`, `lab`
   - `conn`: `ca`, `ca1`, `cb`, `ink`, `gsa`
@@ -47,6 +47,8 @@ Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
 - wrong-group example:
   - `pn` is a `box` style, so `["l", ..., "pn"]` is invalid
   - use a `shape` style like `dv` or `ink` on `l`
+- `pn` and `kd` are flat editorial surfaces by default. Use `pnb` / `kdb` only when a border communicates structure, containment, or comparison.
+- accent and diagram box styles such as `qa`, `qb`, `kb`, `sq*`, and `dst` keep visible strokes because their boundaries carry meaning.
 - box styles are square by default; add `{"rx": 18}` to a specific `m` or `b` only when rounded cards are intentional
 
 ## Ops
@@ -192,12 +194,12 @@ Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
   - oversized text node `h` counts against density even if copy is short
   - keep text-node `h` tight
 - `mc` on text nodes is optional; compiler derives it from current string length
-- `rx` on `m` / `b` opts explicitly rounds that one rectangle; omit it for square editorial panels
+- `rx` on `m` / `b` opts explicitly rounds that one rectangle; omit it for square flat panels
 
 ## Theme Inheritance
 
 - some box styles define child-text defaults
-- `kd` forces light child text unless color is explicitly overridden
+- `kd` and `kdb` force light child text unless color is explicitly overridden
 
 ## Overflow
 
@@ -343,7 +345,7 @@ Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
     ["b", "S2", 100, 312, 220, 76, "cl", null, {"cp": 16}],
     ["b", "S3", 100, 404, 220, 76, "cl", null, {"cp": 16}],
     ["b", "S4", 100, 496, 220, 76, "cl", null, {"cp": 16}],
-    ["b", "HUB", 540, 296, 280, 200, "kd", null, {"cp": 24}],
+    ["b", "HUB", 540, 296, 280, 200, "kdb", null, {"cp": 24}],
     ["b", "EXP", 880, 220, 488, 432, "sqb", null, {"cp": 28}]
   ],
   "tx": [

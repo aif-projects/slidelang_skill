@@ -160,7 +160,10 @@ Create `decks/main/theme.json` in the project directory with colors and fonts fo
   - `text` styles for `tx`
   - `conn` styles for `cn`
 - If you see a style-group error, the usual cause is using a token from the wrong group. Example: `pn` is valid on `b` but invalid on `l`.
-- On dark themes, `line` must be materially lighter than `paper` or contrast lint will fail.
+- `pn` and `kd` are flat editorial surfaces. Use them for text panels, stat blocks, quotes, and quiet grouping.
+- Use bordered box styles only when the boundary carries meaning: diagram containment, deployable units, comparison cards, status callouts, or connector nodes.
+- `pnb` and `kdb` are the bordered variants of `pn` and `kd`. Accent and diagram styles such as `qa`, `qb`, `kb`, `sq*`, and `dst` keep visible strokes.
+- On dark themes, `line` must be materially lighter than `paper` when you choose bordered styles; flat panels are checked by fill contrast instead.
 - Choose a unique design direction per deck — do not copy themes from other decks.
 - Box styles are square by default. Use an explicit `{"rx": 18}` option only when rounded cards are part of the chosen design direction.
 
@@ -168,7 +171,7 @@ Create `decks/main/theme.json` in the project directory with colors and fonts fo
 
 Create `decks/main/slide_00.sl.json`, `slide_01.sl.json`, etc. in the project directory.
 
-Before writing slide specs, choose a container strategy for the deck: mostly unboxed/whitespace-led, square editorial panels, diagram nodes, or intentionally rounded cards. Do not default to rounded card rows.
+Before writing slide specs, choose a container strategy for the deck: mostly unboxed/whitespace-led, flat editorial surfaces, diagram nodes, or intentionally rounded cards. Do not default to bordered card rows.
 
 Each slide is a JSON spec. See `references/dsl.md` for the full DSL reference, but the core structure:
 

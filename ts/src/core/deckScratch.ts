@@ -152,7 +152,7 @@ Authoring rules:
 - If \`brief/deck_plan.json\` does not exist yet, write it before running the image CLI.
 - Create the deck theme yourself in \`decks/main/theme.json\`.
 - Create the slide specs yourself under \`decks/main/\`.
-- Before authoring slide specs, choose a container strategy for this deck: mostly unboxed/whitespace-led, square editorial panels, diagram nodes, or intentionally rounded cards. Do not default to rounded card rows.
+- Before authoring slide specs, choose a container strategy for this deck: mostly unboxed/whitespace-led, flat editorial surfaces, diagram nodes, or intentionally rounded cards. Do not default to bordered card rows.
 - Stay faithful to the intent and to any materials you decide to rely on. If confidence is low, simplify instead of inventing specifics.
 - Keep the result editable in native SlideLang. Do not turn the final deck into raster art.
 - Use native SlideLang for visuals the layout engine can draw well: spatial labels, connectors, formulas, tables, simple diagrams, and only the containers the slide genuinely needs.
@@ -211,10 +211,10 @@ Theme rules:
 - Do not copy a default beige/editorial scheme from this guide.
 - Refs are layout-only. Use them for grouping and composition, not for palette, branding, or typography decisions.
 - \`font_body\` is the canonical required body font. \`font\` is still accepted as a legacy fallback and will default from \`font_body\` if omitted.
-- On dark paper, subtle borders usually fail lint. Make \`line\` materially lighter than the background, even if a lower-contrast stroke looks prettier by eye.
+- On dark paper, make \`line\` materially lighter than the background when you intentionally use bordered styles. Flat panels are checked by fill contrast instead.
 
 Common token cheat sheet:
-- Box styles: \`cl\` = invisible layout container, \`pn\` = neutral panel, \`sqw\` / \`sqg\` / \`sqb\` = stronger editorial panels, \`kd\` = dark key panel. Box styles are square by default. Use \`{"rx": 18}\` only when rounded cards are part of the chosen design direction.
+- Box styles: \`cl\` = invisible layout container, \`pn\` = flat neutral editorial surface, \`pnb\` = bordered neutral panel, \`kd\` = flat dark key panel, \`kdb\` = bordered dark key panel, \`sqw\` / \`sqg\` / \`sqb\` = stronger diagram/editorial panels. Box styles are square by default. Use \`{"rx": 18}\` only when rounded cards are part of the chosen design direction.
 - Text styles: \`ttc\` = title, \`sec\` = section label, \`mic\` = body copy, \`lab\` = small label, \`smc\` = compact small copy.
 - Connector styles: \`ca\` / \`cb\` = arrow families, \`dv\` = divider line.
 - Use \`manifest.json\` and the repo README as the full reference if you need less common tokens.
@@ -289,11 +289,11 @@ Image layout helpers:
 
 Rules of thumb:
 - Use real \`cn\` connectors. Do not fake arrows with ASCII text.
-- Prefer spatial structure, labels, lanes, and connectors over text walls. Use visible boxes only when they add grouping, hierarchy, or diagram meaning.
+- Prefer spatial structure, labels, lanes, and connectors over text walls. Use flat surfaces for quiet editorial grouping; use bordered boxes only when the boundary adds hierarchy, comparison, containment, or diagram meaning.
 - Keep IDs stable and descriptive.
 - Do not put \`th\` in slide specs. Define deck styling in \`decks/main/theme.json\` instead.
 - Treat \`mc\` as optional. If you omit it, the compiler derives the current char count automatically.
-- \`kd\` forces light child text by design. If you parent dark text inside a \`kd\` panel, the panel style will override it.
+- \`kd\` and \`kdb\` force light child text by design. If you parent dark text inside a \`kd\` or \`kdb\` panel, the panel style will override it.
 - Visible boxes are square by default. Add an explicit \`rx\` option only for a deliberately rounded card language.
 - Choose the deck title deliberately; the scaffold title is only a placeholder until you set one.
 - Stay faithful to your stated intent and any materials you decide to rely on.
