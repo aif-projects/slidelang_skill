@@ -179,14 +179,19 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
     await mirrorPublishedArtifacts(projectDir, String(result.out ?? ""), result.artifact_files);
     const slides = Array.isArray(result.slides) ? result.slides.map((e) => asRecord(e)) : [];
     const workflowName = asString(result.workflow) ?? target ?? "slidemaker";
-    await writeWorkflowCloudSync(projectDir, workflowName, {
-      published_revision_id: asString(result.published_revision_id),
-    });
+    const publishOk = result.publish_ok === true;
+    if (publishOk) {
+      await writeWorkflowCloudSync(projectDir, workflowName, {
+        published_revision_id: asString(result.published_revision_id),
+      });
+    }
     const firstSlideId = asString(slides[0]?.id);
+    const links = buildPublishLinks(apiBaseUrl, project, workflowName, firstSlideId);
     const output: Record<string, unknown> = {
       ...result,
       api_base_url: apiBaseUrl,
-      ...buildPublishLinks(apiBaseUrl, project, workflowName, firstSlideId),
+      ...(publishOk ? { present_url: links.present_url } : {}),
+      editor_url: links.editor_url,
     };
     delete output.artifact_files;
     process.stdout.write(`${JSON.stringify(output, null, 2)}\n`);
