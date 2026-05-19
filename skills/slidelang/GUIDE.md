@@ -287,7 +287,7 @@ Do not stop at `publish_ok: true` — target `clean_ok: true`.
 
 ## Phase 7: Independent review (recommended for customer-facing decks)
 
-`clean_ok: true` proves the layout passes lint. It does not prove the deck is factually correct. For technical decks that will be sent externally, spawn a fresh subagent to review against the source material.
+`clean_ok: true` proves the layout passes lint. It does not prove the deck is factually correct. For technical decks that will be sent externally, use an independent review pass against the source material.
 
 When it pays off:
 - The deck has a clear source-of-truth doc, runbook, or spec to ground against.
@@ -299,9 +299,9 @@ When to skip:
 - Decks where the author IS the source (no grounding doc exists).
 - Decks already reviewed by a human stakeholder.
 
-Spawn a fresh subagent (it must not share your authoring context — that is the whole point):
+If your environment supports a fresh subagent and the user permits delegation, spawn one that does not share your authoring context — that is the whole point. Otherwise, run a separate review pass yourself after clearing the authoring thread context as much as practical.
 - Hand it the published deck URL **and** the grounding source URL.
-- Hand it the local `decks/main/slide_*.sl.json` paths — the `tx` array holds every rendered string, which is faster than browser-scraping each slide.
+- Hand it the local `decks/main/slide_*.sl.json` paths — the specs hold most rendered strings, including `tx` text plus chart axis labels and annotations, which is faster than browser-scraping each slide.
 - Ask explicitly for **blocking factual errors only**: claims contradicted by the source, unsupported claims that go beyond the source, technical details that are wrong (env var names, paths, command flags, version numbers).
 - Tell it not to flag aesthetic preferences or design choices. Reviewers tend to flag intentional accents (e.g. one `kd` panel among `pn` siblings) as "inconsistency"; pre-empt that by naming it.
 - Cap the response length (300-500 words). Long reviews dilute the blockers.
