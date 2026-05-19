@@ -300,13 +300,13 @@ When to skip:
 - Decks already reviewed by a human stakeholder.
 
 If your environment supports a fresh subagent and the user permits delegation, spawn one that does not share your authoring context — that is the whole point. Otherwise, run a separate review pass yourself after clearing the authoring thread context as much as practical.
-- Hand it the published deck URL **and** the grounding source URL.
+- Hand it the current published deck URL **and** the grounding source material: source URL, local doc path, runbook, spec, or pasted notes.
 - Hand it the local `decks/main/slide_*.sl.json` paths — the specs hold most rendered strings, including `tx` text plus chart axis labels and annotations, which is faster than browser-scraping each slide.
 - Ask explicitly for **blocking factual errors only**: claims contradicted by the source, unsupported claims that go beyond the source, technical details that are wrong (env var names, paths, command flags, version numbers).
 - Tell it not to flag aesthetic preferences or design choices. Reviewers tend to flag intentional accents (e.g. one `kd` panel among `pn` siblings) as "inconsistency"; pre-empt that by naming it.
 - Cap the response length (300-500 words). Long reviews dilute the blockers.
 
-After fixing the blockers, run a second short review pass to confirm nothing new broke. Then publish.
+If the review finds blockers, fix them, rerun Phase 6, publish the fixed deck, and then run a second short review pass against the new published URL to confirm nothing new broke.
 
 A separate visual-layout review pass is also worth running for any multi-panel deck: ask the subagent to navigate `#slide-1` through `#slide-N`, screenshot each, and flag only alignment/spacing problems (panel rows whose right edge doesn't match a strip below, inconsistent row heights, gaps that vary between sibling pairs). The check/lint pipeline does not catch these because they are visually wrong but not preflight-wrong.
 
