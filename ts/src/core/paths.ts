@@ -13,5 +13,5 @@ export const DECKS_DATA_ROOT = resolveDecksDataRoot();
 
 export function resolveApiBaseUrl(env: NodeJS.ProcessEnv = process.env): string {
   const configured = String(env.SLIDELANG_API_BASE_URL ?? env.EDITOR_BASE_URL ?? "").trim();
-  return configured || "https://slidelang.up.railway.app";
+  return configured || "https://slidelang.ai";
 }
