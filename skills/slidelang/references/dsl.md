@@ -49,7 +49,14 @@ Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
   - use a `shape` style like `dv` or `ink` on `l`
 - `pn` and `kd` are flat editorial surfaces by default. Use `pnb` / `kdb` only when a border communicates structure, containment, or comparison.
 - accent and diagram box styles such as `qa`, `qb`, `kb`, `sq*`, and `dst` keep visible strokes because their boundaries carry meaning.
-- box styles are square by default; add `{"rx": 18}` to a specific `m` or `b` only when rounded cards are intentional
+- box styles are square by default; add explicit visual opts to a specific `m` or `b` only when the card treatment is intentional:
+  - `rx`: corner radius in px
+  - `fill`: theme color token (`paper`, `ink`, `muted`, `line`, `cool`, `warm`, `neutral`, `panel`, `dark`) or `#RRGGBB`
+  - `stroke`: theme color token, `#RRGGBB`, `transparent`, or `none`
+  - `stroke_width`: stroke width in px
+  - `stroke_dash`: space-separated dash pattern, for example `"4 3"`
+  - example: `["b", "C1", 56, 420, 432, 320, "sqw", null, {"cp": 28, "rx": 18, "fill": "#ECE5F7", "stroke": "line", "stroke_width": 1}]`
+- box visual precedence is per-element opts over style token over runtime defaults; unsupported direct `m` / `b` opts are errors
 
 ## Ops
 
@@ -194,7 +201,7 @@ Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
   - oversized text node `h` counts against density even if copy is short
   - keep text-node `h` tight
 - `mc` on text nodes is optional; compiler derives it from current string length
-- `rx` on `m` / `b` opts explicitly rounds that one rectangle; omit it for square flat panels
+- box visual opts on `m` / `b` override only that rectangle. Use `rx`, `fill`, `stroke`, `stroke_width`, and `stroke_dash`; omit them to use the selected style token unchanged.
 
 ## Theme Inheritance
 

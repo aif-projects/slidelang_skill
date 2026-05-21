@@ -165,7 +165,7 @@ Create `decks/main/theme.json` in the project directory with colors and fonts fo
 - `pnb` and `kdb` are the bordered variants of `pn` and `kd`. Accent and diagram styles such as `qa`, `qb`, `kb`, `sq*`, and `dst` keep visible strokes.
 - On dark themes, `line` must be materially lighter than `paper` when you choose bordered styles; flat panels are checked by fill contrast instead.
 - Choose a unique design direction per deck — do not copy themes from other decks.
-- Box styles are square by default. Use an explicit `{"rx": 18}` option only when rounded cards are part of the chosen design direction.
+- Box styles are square by default. Use explicit per-box visual opts (`rx`, `fill`, `stroke`, `stroke_width`, `stroke_dash`) only when that card treatment is part of the chosen design direction.
 
 ### 4b. Author slides
 
