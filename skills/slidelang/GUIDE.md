@@ -288,6 +288,31 @@ Do not stop at `publish_ok: true` — target `clean_ok: true`.
 - Read the `recommended_action` field on each lint issue.
 - If `ok: false` with no lint issues, the slide files likely have JSON syntax errors or missing required fields — validate the JSON and check for missing `v`, `fr`, or `meta` keys.
 
+## Phase 7: Independent review (recommended for customer-facing decks)
+
+`clean_ok: true` proves the layout passes lint. It does not prove the deck is factually correct. For technical decks that will be sent externally, use an independent review pass against the source material.
+
+When it pays off:
+- The deck has a clear source-of-truth doc, runbook, or spec to ground against.
+- The deck will be sent to customers, partners, or external reviewers.
+- The arc is long enough (8+ slides) that the author has lost fidelity to the source.
+
+When to skip:
+- Quick internal decks.
+- Decks where the author IS the source (no grounding doc exists).
+- Decks already reviewed by a human stakeholder.
+
+If your environment supports a fresh subagent and the user permits delegation, spawn one that does not share your authoring context — that is the whole point. Otherwise, run a separate review pass yourself after clearing the authoring thread context as much as practical.
+- Hand it the current published deck URL **and** the grounding source material: source URL, local doc path, runbook, spec, or pasted notes.
+- Hand it the local `decks/main/slide_*.sl.json` paths — the specs hold most rendered strings, including `tx` text plus chart axis labels and annotations, which is faster than browser-scraping each slide.
+- Ask explicitly for **blocking factual errors only**: claims contradicted by the source, unsupported claims that go beyond the source, technical details that are wrong (env var names, paths, command flags, version numbers).
+- Tell it not to flag aesthetic preferences or design choices. Reviewers tend to flag intentional accents (e.g. one `kd` panel among `pn` siblings) as "inconsistency"; pre-empt that by naming it.
+- Cap the response length (300-500 words). Long reviews dilute the blockers.
+
+If the review finds blockers, fix them, rerun Phase 6, publish the fixed deck, and then run a second short review pass against the new published URL to confirm nothing new broke.
+
+A separate visual-layout review pass is also worth running for any multi-panel deck: ask the subagent to navigate `#slide-1` through `#slide-N`, screenshot each, and flag only alignment/spacing problems (panel rows whose right edge doesn't match a strip below, inconsistent row heights, gaps that vary between sibling pairs). The check/lint pipeline does not catch these because they are visually wrong but not preflight-wrong.
+
 ## After publishing
 
 Report the published deck URL and the final `ok` / `publish_ok` / `clean_ok` values. If it failed, say exactly where the process stalled.
