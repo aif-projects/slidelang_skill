@@ -53,9 +53,12 @@ export async function generateImages(
 ): Promise<Record<string, any>> {
   const manifestPath = path.join(projectRoot, "manifest.json");
   const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
-  const project = String(asRecord(manifest).id ?? "").trim();
-  if (!project) {
-    throw new Error(`manifest.json at ${manifestPath} must contain a project id.`);
+  // Use the same project id as `npm run projects -- ...` (the project directory name); fall back to
+  // manifest.id only when the directory name is not a valid id.
+  const dirName = path.basename(projectRoot);
+  const project = /^[A-Za-z0-9_-]+$/.test(dirName) ? dirName : String(asRecord(manifest).id ?? "").trim();
+  if (!/^[A-Za-z0-9_-]+$/.test(project)) {
+    throw new Error(`Cannot determine a valid project id for ${projectRoot}: name the directory with letters, numbers, underscores, or hyphens.`);
   }
   const files = await bundleProjectFiles(projectRoot);
   const apiBaseUrl = resolveApiBaseUrl();
@@ -82,4 +85,9 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
     retry: hasFlag(argv, "--retry") || hasFlag(argv, "--force"),
   });
   process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+  const failed = Array.isArray(result.failed) ? result.failed : [];
+  if (failed.length) {
+    process.stderr.write(`${failed.length} image(s) failed; successful images were saved. Re-run with --slide/--asset --retry for the failures.\n`);
+    process.exitCode = 1;
+  }
 }

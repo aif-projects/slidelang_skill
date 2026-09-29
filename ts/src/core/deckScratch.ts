@@ -117,10 +117,10 @@ ${planNote}
 Suggested slide arc:
 ${slides}
 
-Work from the repo root:
+Work from the SlideLang skill root (the directory containing the skill's \`package.json\`), with \`DECKS_DATA_ROOT\` pointing at the projects directory:
 
 \`\`\`bash
-npm run ts:projects -- publish ${projectId} slidemaker
+npm run projects -- publish ${projectId} slidemaker
 \`\`\`
 
 Minimal valid slide file:
@@ -148,7 +148,7 @@ Authoring rules:
 - Do not rely on prior deck artifacts or starter slide files. Create the slide specs yourself.
 - Strict benchmark rule: do not create \`decks/main/theme.json\` or any \`decks/main/slide_*.sl.json\` files until the planned generated images already exist on disk. If you author deck files first, the run is invalid and should be restarted with a fresh project id.
 - Generate the planned SlideLang images before authoring the deck: any explicit ref assets under \`assets/refs/\` and any direct embeddable assets under \`assets/generated/\`.
-- If \`brief/deck_plan.json\` exists, image generation reads only explicit \`assets\` entries with \`prompt\`.
+- If \`brief/deck_plan.json\` exists, image generation reads each slide's explicit \`assets\` entries. Every entry needs a non-empty \`prompt\` and a plain \`id\` (letters, numbers, \`_\`, \`-\`, \`.\`); an entry without a prompt fails the whole run.
 - If \`brief/deck_plan.json\` does not exist yet, write it before running the image CLI.
 - Create the deck theme yourself in \`decks/main/theme.json\`.
 - Create the slide specs yourself under \`decks/main/\`.
@@ -180,10 +180,10 @@ Authoring rules:
   - If a roomy card layout is intentional, raise parent \`td\` / \`tdp\` rather than trimming already-good copy.
   - If short copy still fails density, fix geometry first and wording second.
 - Keep iterating until the workflow is clean, not just publishable.
-- Use \`npm run ts:projects -- check ${projectId} slidemaker\` for fast iteration when you want layout/finalize feedback without waiting for PNG rendering and browser lint.
-- Run \`npm run ts:projects -- budget ${projectId} slidemaker\` before the first publish once your first draft slides exist.
-- Debug using \`publish/slidemaker/check/workflow_summary.json\` and the per-slide \`summary.json\` / \`lint.json\` / \`layout.json\` files.
-- If the right fix is ambiguous, run \`npm run ts:projects -- check ${projectId} slidemaker\` first, then \`npm run ts:projects -- repair-plan ${projectId} slidemaker\` or add a slide id at the end.
+- Use \`npm run projects -- check ${projectId} slidemaker\` for fast iteration when you want layout/finalize feedback without waiting for PNG rendering (browser lint still runs).
+- Run \`npm run projects -- budget ${projectId} slidemaker\` before the first publish once your first draft slides exist.
+- Debug using \`publish/slidemaker/check/workflow_summary.json\` and the per-slide \`summary.json\` / \`lint.json\` / \`layout.json\` files (\`check\` mirrors them into this project directory).
+- If the right fix is ambiguous, run \`npm run projects -- check ${projectId} slidemaker\` first, then \`npm run projects -- repair-plan ${projectId} slidemaker\` or add a slide id at the end.
 - For generated refs and assets, inspect the actual generated image files and compare them against the generated review checklist before you use them.
 - If a ref or asset contains unwanted text or the composition is wrong, rerun the image CLI with \`--slide <stem>\`, \`--asset <id>\`, and \`--retry\` rather than regenerating the whole batch.
 
@@ -191,18 +191,19 @@ Preferred deck theme at \`decks/main/theme.json\`:
 
 \`\`\`json
 {
-  "paper": "<hex color>",
-  "ink": "<hex color>",
-  "muted": "<hex color>",
-  "line": "<hex color>",
-  "cool": "<hex color>",
-  "warm": "<hex color>",
-  "neutral": "<hex color>",
-  "panel": "<hex color>",
-  "dark": "<hex color>",
+  "paper": "<#RRGGBB>",
+  "ink": "<#RRGGBB>",
+  "muted": "<#RRGGBB>",
+  "line": "<#RRGGBB>",
+  "cool": "<#RRGGBB>",
+  "warm": "<#RRGGBB>",
+  "neutral": "<#RRGGBB>",
+  "panel": "<#RRGGBB>",
+  "dark": "<#RRGGBB>",
   "font": "<legacy optional CSS font-family string>",
   "font_display": "<CSS font-family string>",
-  "font_body": "<CSS font-family string>"
+  "font_body": "<CSS font-family string>",
+  "font_mono": "<optional CSS font-family string for cod code text>"
 }
 \`\`\`
 
@@ -216,7 +217,8 @@ Theme rules:
 Common token cheat sheet:
 - Box styles: \`cl\` = invisible layout container, \`pn\` = flat neutral editorial surface, \`pnb\` = bordered neutral panel, \`kd\` = flat dark key panel, \`kdb\` = bordered dark key panel, \`sqw\` / \`sqg\` / \`sqb\` = stronger diagram/editorial panels. Box styles are square by default. Use \`{"rx": 18}\` only when rounded cards are part of the chosen design direction.
 - Text styles: \`ttc\` = title, \`sec\` = section label, \`mic\` = body copy, \`lab\` = small label, \`smc\` = compact small copy.
-- Connector styles: \`ca\` / \`cb\` = arrow families, \`dv\` = divider line.
+- Connector styles: \`ca\` / \`cb\` = arrow families. \`dv\` is a *shape* style for divider lines on \`l\`, not a connector style; using it on a connector is an error.
+- Theme palette values must be 6-digit \`#RRGGBB\` hex; \`#RGB\`, 8-digit hex, \`rgb()\`, and color names are rejected.
 - Use \`manifest.json\` and the repo README as the full reference if you need less common tokens.
 
 Elements & opts cheat sheet:
@@ -226,10 +228,10 @@ Elements & opts cheat sheet:
 - \`ab\` / \`rb\` are aliases for those same budget keys. \`ab.pd\` changes preferred density only; use \`td\` or \`rb.hd\` when you need a higher hard density threshold.
 
 Image generation quickstart:
-- Preferred command from the repo root: \`npm run ts:images -- --project-root ${projectDir}\`
-- That repo CLI calls the SlideLang image API and mirrors generated files back into the local deck.
+- Preferred command from the skill root: \`npm run images -- --project-root ${projectDir}\`
+- That CLI calls the SlideLang image API and mirrors generated files back into the local deck.
 - Do not rely on local provider API keys for this path.
-- The server-side image pipeline routes slide refs and embeddable assets through OpenAI GPT Image 2.
+- The server-side image pipeline routes slide refs through OpenAI GPT Image 2.5 Flare and embeddable assets through GPT Image 2.5 Sunburst.
 - If \`brief/deck_plan.json\` does not exist yet, write it first with one slide entry per planned slide and include \`stem\`, \`title\`, and optional \`assets\` entries.
 - For generated images, add an \`assets\` array on the slide with entries like \`{ "id": "hero_bg", "mode": "asset", "prompt": "..." }\` or \`{ "id": "slide_03_ref", "mode": "ref", "prompt": "..." }\`.
 - Use assets more freely than a fallback escape hatch. They are often the biggest quality jump in a deck when they replace fake placeholder visuals with real imagery, and the strongest technical decks often use more than one.
@@ -237,16 +239,16 @@ Image generation quickstart:
 - Keep formulas, labels, connector logic, and simple explanatory diagrams native; use assets for the parts SlideLang cannot fake convincingly.
 - For embeddable assets, set a background policy:
   - \`"background_policy": "frame_fill"\` when the image should fully own its rectangle or panel
-    - frame-fill assets are generated as landscape sources and normalized to 16:9 WebP; write prompts with central 16:9 crop-safe composition and expendable top/bottom bleed
+    - frame-fill assets are generated natively at 16:9 (2048x1152) and stored as WebP; keep the main subject clear of regions where slide text will overlay it
   - \`"background_policy": "isolated_plain_background"\` for isolated supporting visuals
   - do not default to paper-matched deck backgrounds as a fake matte
 - Generated assets are auto-registered into \`manifest.json\` and written under \`assets/generated/\`.
 - Generated asset metadata and review checklists are written to \`assets/generated/manifest.json\`.
-- Opt-in refs use OpenAI GPT Image 2.
-- Assets use OpenAI GPT Image 2 and store the detected output format.
+- Opt-in refs use OpenAI GPT Image 2.5 Flare.
+- Assets use OpenAI GPT Image 2.5 Sunburst and are stored as WebP.
 - For focused retries, use:
-  - \`npm run ts:images -- --project-root ${projectDir} --slide slide_03\`
-  - \`npm run ts:images -- --project-root ${projectDir} --slide slide_hero --asset hero_bg --retry\`
+  - \`npm run images -- --project-root ${projectDir} --slide slide_03\`
+  - \`npm run images -- --project-root ${projectDir} --slide slide_hero --asset hero_bg --retry\`
 
 Common connector examples:
 
@@ -293,7 +295,7 @@ Rules of thumb:
 - Keep IDs stable and descriptive.
 - Do not put \`th\` in slide specs. Define deck styling in \`decks/main/theme.json\` instead.
 - Treat \`mc\` as optional. If you omit it, the compiler derives the current char count automatically.
-- \`kd\` and \`kdb\` force light child text by design. If you parent dark text inside a \`kd\` or \`kdb\` panel, the panel style will override it.
+- \`kd\` and \`kdb\` default child text to a light color. An explicit text color \`c\` still wins, so do not set a dark \`c\` on text parented inside a \`kd\` or \`kdb\` panel (it would render dark on dark).
 - Visible boxes are square by default. Add an explicit \`rx\` option only for a deliberately rounded card language.
 - Choose the deck title deliberately; the scaffold title is only a placeholder until you set one.
 - Stay faithful to your stated intent and any materials you decide to rely on.
@@ -333,16 +335,16 @@ Suggested first-pass workflow:
 2. Choose the deck title and research path yourself.
 3. Decide the deck arc.
 4. Write \`brief/deck_plan.json\` if it does not exist yet.
-5. Run \`npm run ts:images -- --project-root ${projectDir}\` to generate the planned opt-in refs and embeddable assets through the image API.
+5. Run \`npm run images -- --project-root ${projectDir}\` to generate the planned opt-in refs and embeddable assets through the image API.
 6. Review any generated assets visually against the generated checklist and rerun with \`--retry\` if needed.
 7. Confirm the planned generated images exist on disk before authoring anything under \`decks/main/\`.
 8. Create \`decks/main/theme.json\` from the chosen direction.
 9. Create \`decks/main/slide_00.sl.json\`, \`slide_01.sl.json\`, ...
 10. Update \`manifest.json\` workflow slides.
-11. Run \`npm run ts:projects -- budget ${projectId} slidemaker\` and trim any obvious over-budget nodes first.
-12. Run \`npm run ts:projects -- check ${projectId} slidemaker\` for a fast pre-publish pass.
-13. Run \`npm run ts:projects -- check ${projectId} slidemaker\` again after substantial edits, then publish once clean.
-14. If the best repair is unclear, run \`npm run ts:projects -- repair-plan ${projectId} slidemaker\` after a fresh check.
+11. Run \`npm run projects -- budget ${projectId} slidemaker\` and trim any obvious over-budget nodes first.
+12. Run \`npm run projects -- check ${projectId} slidemaker\` for a fast pre-publish pass.
+13. Run \`npm run projects -- check ${projectId} slidemaker\` again after substantial edits, then publish once clean.
+14. If the best repair is unclear, run \`npm run projects -- repair-plan ${projectId} slidemaker\` after a fresh check.
 15. Keep iterating until all success criteria below are true.
 
 Success criteria:

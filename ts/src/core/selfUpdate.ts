@@ -6,6 +6,10 @@ import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
 const OFFICIAL_REMOTE = "github.com/aif-projects/slidelang_skill";
+const GIT_TIMEOUT_MS = 15_000;
+const GIT_FETCH_TIMEOUT_MS = 30_000;
+const NPM_INSTALL_TIMEOUT_MS = 5 * 60_000;
+const DEPENDENCY_FILES = ["package.json", "package-lock.json"];
 
 export type SkillUpdateResult =
   | { ok: true; repoRoot: string; before: string; after: string; updated: boolean }
@@ -32,11 +36,36 @@ async function findSkillRepoRoot(startFile: string): Promise<string | null> {
   }
 }
 
-async function git(repoRoot: string, args: string[]): Promise<string> {
+async function git(repoRoot: string, args: string[], timeout = GIT_TIMEOUT_MS): Promise<string> {
   const { stdout } = await execFileAsync("git", ["-C", repoRoot, ...args], {
     maxBuffer: 1024 * 1024,
+    timeout,
+    // Never block the CLI on a credential/passphrase/host-key prompt.
+    env: {
+      ...process.env,
+      GIT_TERMINAL_PROMPT: "0",
+      GIT_SSH_COMMAND: process.env.GIT_SSH_COMMAND ?? "ssh -o BatchMode=yes",
+    },
   });
   return stdout.trim();
+}
+
+async function installDependenciesIfChanged(repoRoot: string, before: string, after: string): Promise<void> {
+  const changed = await git(repoRoot, ["diff", "--name-only", before, after, "--", ...DEPENDENCY_FILES]).catch(() => "");
+  if (!changed) return;
+  process.stderr.write("slidelang skill update: dependencies changed; running npm install...\n");
+  try {
+    await execFileAsync("npm", ["install", "--no-audit", "--no-fund"], {
+      cwd: repoRoot,
+      timeout: NPM_INSTALL_TIMEOUT_MS,
+      maxBuffer: 16 * 1024 * 1024,
+    });
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    process.stderr.write(
+      `slidelang skill update: npm install failed (${reason}). Run 'npm install' in ${repoRoot} before continuing.\n`,
+    );
+  }
 }
 
 function normalizedRemote(url: string): string {
@@ -70,7 +99,15 @@ export async function updateSkillRepoBeforeRun(importMetaUrl: string): Promise<S
     return { ok: false, repoRoot, reason: `current branch is '${branch || "detached"}', expected 'main'` };
   }
 
-  const status = await git(repoRoot, ["status", "--porcelain"]).catch(() => "");
+  let status: string;
+  try {
+    status = await git(repoRoot, ["status", "--porcelain"]);
+  } catch (error) {
+    // If we cannot prove the checkout is clean, treat it as dirty and leave it alone.
+    const reason = `git status failed: ${error instanceof Error ? error.message : String(error)}`;
+    warn(reason);
+    return { ok: false, repoRoot, reason };
+  }
   if (status) {
     warn("local changes are present");
     return { ok: false, repoRoot, reason: "local changes are present" };
@@ -78,9 +115,10 @@ export async function updateSkillRepoBeforeRun(importMetaUrl: string): Promise<S
 
   try {
     const before = await git(repoRoot, ["rev-parse", "HEAD"]);
-    await git(repoRoot, ["fetch", "origin", "main"]);
+    await git(repoRoot, ["fetch", "origin", "main"], GIT_FETCH_TIMEOUT_MS);
     await git(repoRoot, ["merge", "--ff-only", "origin/main"]);
     const after = await git(repoRoot, ["rev-parse", "HEAD"]);
+    if (before !== after) await installDependenciesIfChanged(repoRoot, before, after);
     return { ok: true, repoRoot, before, after, updated: before !== after };
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);

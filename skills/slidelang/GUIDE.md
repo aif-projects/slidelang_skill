@@ -102,7 +102,7 @@ Visual mode per slide:
 Image guidelines:
 - Do not treat assets as a last resort. Many technical decks benefit from 2-4 assets.
 - Default pattern: 1 hero/frame-filling asset + 1-2 supporting assets on content slides.
-- Use `frame_fill` when the image owns its full panel. Frame-fill assets are normalized to 16:9, so keep important content inside the central crop-safe area. Use `isolated_plain_background` for isolated objects.
+- Use `frame_fill` when the image owns its full panel. Frame-fill assets are generated natively at 16:9 (2048x1152); keep the main subject clear of areas where slide text will sit. Use `isolated_plain_background` for isolated objects.
 - Keep formulas, connector logic, labels, and simple diagrams native.
 - Good asset targets: physical scenes, textures, UI collages, illustrative metaphors, anything the layout engine would fake badly.
 
@@ -124,7 +124,7 @@ npm run images -- --project-root <project-dir> --slide slide_03
 npm run images -- --project-root <project-dir> --slide slide_00 --asset hero_bg --retry
 ```
 
-Generate planned opt-in refs/assets before creating slide files — slides that reference missing assets will fail validation.
+Generate planned opt-in refs/assets before creating slide files. `images` registers an `asset:<id>` alias in `manifest.json` only once that asset's file exists, and a registered asset whose file is missing fails `check`/`publish`. An *unregistered* `asset:<id>` is not flagged at all — it renders as a broken image — so confirm the id is listed under `manifest.json` → `workflows.slidemaker.assets` before referencing it. If some images fail, the command exits non-zero, lists them under `failed`, and keeps the ones that succeeded; re-run just the failures with `--slide/--asset --retry`.
 
 ### Optional: register local videos
 
@@ -150,9 +150,10 @@ Use `fit: "contain"` unless intentional crop is acceptable. `autoplay: true` is 
 
 ### 4a. Create the theme
 
-Create `decks/main/theme.json` in the project directory with colors and fonts for the deck. See `references/dsl.md` for the full theme schema and an example.
+Create `decks/main/theme.json` in the project directory with colors and fonts for the deck. See the Theme section of `references/dsl.md` for the schema. Every palette value must be a 6-digit `#RRGGBB` hex color; `#RGB`, 8-digit hex, `rgb()`, and color names are rejected.
 
-- `font_body` is required. `font_display` is for headings.
+- `font_body` is required. `font_display` is for headings. Optional `font_mono` sets the face for `cod` code text.
+- Google Fonts families (Inter, Archivo, Source Serif 4, IBM Plex Mono and many more) load automatically; other family names only render where the viewer has them installed.
 - `theme.json` defines palette and fonts only. Runtime style tokens like `pn`, `ttc`, `dv`, and `ca1` are derived automatically.
 - Theme tokens are group-specific:
   - `box` styles for `m` / `b`
@@ -183,7 +184,7 @@ Each slide is a JSON spec. See `references/dsl.md` for the full DSL reference, b
   "gd": {"page": 18, "attach": 14, "gap": 8, "txtc": 10},
   "el": [
     ["b", "BOX_ID", x, y, w, h, "style", parent_or_null, {opts}],
-    ["m", "MOD_ID", x, y, w, h, "style", parent_or_null, {opts}],
+    ["m", "MOD_ID", x, y, w, h, "style", {opts}],
     ["vid", "VIDEO_ID", x, y, w, h, "asset:video_asset_id", parent_or_null, {"controls": true, "fit": "contain"}],
     ["ch", "CHART_ID", x, y, w, h, parent_or_null, {chart_spec}]
   ],
@@ -195,6 +196,8 @@ Each slide is a JSON spec. See `references/dsl.md` for the full DSL reference, b
   ]
 }
 ```
+
+`m` has no parent slot (its opts come right after the style); `b`, `vid`, `img`, and `ch` take `parent_or_null` before their opts.
 
 Text nodes support TeX math:
 - `$...$` for inline math
@@ -250,7 +253,7 @@ All workflow commands take a target argument. Use `slidemaker` — it is the def
 # Check budget before first publish on a new deck
 npm run projects -- budget <project-id> slidemaker
 
-# Fast validation (no PNGs, no browser lint)
+# Fast validation (no PNGs; browser lint still runs)
 npm run projects -- check <project-id> slidemaker
 
 # Get repair suggestions when stuck (requires check to have run first)
@@ -271,12 +274,17 @@ Then drill into per-slide artifacts as needed (paths mirror the parent — use `
 - After `publish`: `publish/slidemaker/slides/slide_00.summary.json`
 - Also available per slide: `.lint.json` and `.layout.json`
 
+`check` mirrors these files from the hosted service into your local project, so the `summary_file` paths in its output resolve locally (the output also includes `project_path`).
+
 ### Success criteria
 
-Keep iterating until all three are true:
-- `ok: true`
-- `publish_ok: true`
-- `clean_ok: true`
+Keep iterating until `publish` reports `publish_ok: true` and every slide is `clean_ok: true`. What the fields mean:
+- `blocking_ok`: no blocking issues.
+- `publish_ok`: the slide/deck meets the workflow gate (default: no blocking issues). `publish` exits non-zero when it is false.
+- `clean_ok`: no blocking, repairable, **or editorial** issues. Editorial issues (text density, container/module/slot overflow) count, so they must be fixed too.
+- `repairable_ok`: no repairable issues only; it is not the same as `clean_ok`.
+- Per-slide `ok` in `*.summary.json` equals `clean_ok`.
+- In `check` output, the top-level `ok` only means every slide is `blocking_ok`, and there is no top-level `publish_ok`. Judge a check by each slide's `clean_ok`.
 
 Do not stop at `publish_ok: true` — target `clean_ok: true`.
 
@@ -286,7 +294,7 @@ Do not stop at `publish_ok: true` — target `clean_ok: true`.
 - Use `budget` before the first publish on any new deck.
 - Use `repair-plan` when the next fix is unclear — always run `check` first, since `repair-plan` reads those artifacts.
 - Read the `recommended_action` field on each lint issue.
-- If `ok: false` with no lint issues, the slide files likely have JSON syntax errors or missing required fields — validate the JSON and check for missing `v`, `fr`, or `meta` keys.
+- If `check` or `publish` fails outright instead of returning results, read the error: `Unknown anchor node: X` means a connector ref or `parent` names a node id that does not exist (this aborts the whole run rather than showing up as `connector_detached`); other errors usually mean invalid JSON, a wrong-group style token, or missing `v`, `fr`, or `meta` keys.
 
 ## After publishing
 

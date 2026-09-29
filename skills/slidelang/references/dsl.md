@@ -28,11 +28,19 @@ Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
   - `neutral`
   - `panel`
   - `dark`
+- palette values must be 6-digit hex `#RRGGBB`; `#RGB`, 8-digit hex, `rgb()`, and color names are rejected
+- example `theme.json`:
+  ```json
+  {"name": "Deck", "paper": "#F4EFE6", "ink": "#1F2933", "muted": "#5A6875", "line": "#C8BCA8", "cool": "#4E97AD", "warm": "#D9724B", "neutral": "#8F8476", "panel": "#F8F4EE", "dark": "#2A3138", "font_body": "Inter, sans-serif"}
+  ```
 - optional theme fields:
   - `name`
   - `font`
   - `font_body`
   - `font_display`
+  - `font_mono` (used by the `cod` text style; defaults to the system monospace stack)
+- font values must be plain CSS family lists (letters, digits, spaces, quotes, commas, hyphens, periods)
+- families hosted on Google Fonts (for example Inter, Archivo, Source Serif 4, IBM Plex Mono) are loaded automatically in the slide HTML, and every browser check waits for them; other names only render if the viewer has them installed
 - runtime style groups are derived from those fields:
   - `box` styles for `m` / `b`
   - `shape` styles for `l` / `c`
@@ -41,7 +49,7 @@ Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
 - common derived tokens by group (non-exhaustive):
   - `box`: `pn`, `pnb`, `qa`, `qb`, `kd`, `kdb`, `sqw`, `sqb`, `dst`
   - `shape`: `dv`, `ink`, `oc`, `ocg`, `cb`
-  - `text`: `ttc`, `sec`, `bdc`, `mic`, `lab`
+  - `text`: `ttc`, `sec`, `bdc`, `mic`, `lab`, `cod` (monospace code, left aligned, uses `font_mono`)
   - `conn`: `ca`, `ca1`, `cb`, `ink`, `gsa`
 - these are examples, not the full runtime token set
 - wrong-group example:
@@ -68,13 +76,15 @@ Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
   - `c`: circle
   - `img`: image
 - shape signatures:
+  - `m = ["m", id, x, y, w, h, style, opts?]` (no parent slot)
+  - `b = ["b", id, x, y, w, h, style, parent_or_null, opts?]`
+  - `img = ["img", id, x, y, w, h, src, parent_or_null, opts?]` (`src` may be a registered `asset:<id>`; opts `op`, `par`)
   - `l = ["l", id, x1, y1, x2, y2, style, opts?]`
   - `c = ["c", id, cx, cy, r, style, opts?]`
 - layout:
   - `vs`: vertical stack
   - `hs`: horizontal stack
   - `gr`: grid
-  - `sr`: compact editorial row
   - `panel`: named-slot editorial panel
   - `z`: exclusion zone / grouped obstacle
 - legacy:
@@ -120,11 +130,6 @@ Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
   - opts: `p g ay ov`
 - `gr = ["gr", id, x, y, w, h, parent, cols, items, opts]`
   - opts: `p g gx gy cw ov`
-- `sr = ["sr", id, x, y, w, h, parent, slots, opts]`
-  - slot kinds:
-    - `["g", lane_w, glyphs, opts?]`
-    - `["o", lane_w, symbol, opts?]`
-    - `["v", lane_w, blocks, opts?]`
 - `panel = ["panel", id, x, y, w, h, parent, slots, opts]`
   - slot opts: `p grow lk lo ab rb`
 - `z = ["z", id, x, y, w, h, parent, opts]`
@@ -136,6 +141,7 @@ Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
   - `$...$` for inline math
   - `$$...$$` for display math
 - mixed prose with inline TeX is supported inside one text string
+- `ta` (text align) accepts only `"l"`, `"c"`, or `"r"`; words like `"center"` / `"left"` are silently ignored and fall back to the style's default
 - text opts:
   - `{"math": true}` treats the whole node as inline math when delimiters are omitted
   - `{"math": "display"}` treats the whole node as display math when delimiters are omitted
@@ -233,7 +239,7 @@ Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
   - refs do not choose palette, branding, or typography
 - asset background policy:
   - `background_policy: "frame_fill"` = image owns full panel / frame
-    - frame-fill assets are generated as landscape sources and normalized to 16:9 WebP; prompts should keep important content inside the central 16:9 crop-safe area
+    - frame-fill assets are generated natively at 16:9 (2048x1152) and stored as WebP; keep the main subject clear of regions where slide text will overlay it
   - `background_policy: "isolated_plain_background"` = isolated object / supporting visual
   - `background_policy: "paper_match"` = explicit fallback only, not default
 - deck plan fields:
@@ -362,7 +368,7 @@ Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
     ["s2_t", 122, 338, 180, 28, "sec", "GitHub", "S2", {"fs": 20, "ta": "l", "c": "#1A1815", "mc": 14}],
     ["s3_t", 122, 430, 180, 28, "sec", "Database", "S3", {"fs": 20, "ta": "l", "c": "#1A1815", "mc": 14}],
     ["s4_t", 122, 522, 180, 28, "sec", "Web fetch", "S4", {"fs": 20, "ta": "l", "c": "#1A1815", "mc": 14}],
-    ["hub_t", 562, 360, 240, 36, "sec", "Claude Code", "HUB", {"fs": 28, "ta": "center", "c": "#F2EBDD", "mc": 14}],
+    ["hub_t", 562, 360, 240, 36, "sec", "Claude Code", "HUB", {"fs": 28, "ta": "c", "c": "#F2EBDD", "mc": 14}],
     ["exp_h", 906, 250, 440, 36, "sec", "Bring your own tools", "EXP", {"fs": 28, "ta": "l", "c": "#CC5500", "mc": 24}],
     ["exp_b", 906, 308, 440, 320, "bdc", "MCP servers expose data and actions as typed tools.", "EXP", {"fs": 21, "ta": "l", "lh": 1.32, "c": "#1A1815", "mc": 200}]
   ],

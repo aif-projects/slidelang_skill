@@ -79,7 +79,27 @@ async function showProject(project: string): Promise<Record<string, unknown>> {
 // ---------------------------------------------------------------------------
 
 async function localProjectDir(project: string): Promise<string> {
+  if (!/^[A-Za-z0-9_-]+$/.test(project)) {
+    throw new Error(`Invalid project id '${project}': use only letters, numbers, underscores, or hyphens.`);
+  }
   return path.join(DECKS_DATA_ROOT, project);
+}
+
+// The workflow the server will resolve when no target is given: manifest defaults.publish, else "slidemaker".
+async function localPublishTarget(projectDir: string, target: string | null): Promise<string> {
+  if (target) return target;
+  try {
+    const manifest = asRecord(JSON.parse(await fs.readFile(path.join(projectDir, "manifest.json"), "utf8")));
+    return asString(asRecord(manifest.defaults).publish) ?? "slidemaker";
+  } catch {
+    return "slidemaker";
+  }
+}
+
+function resolveUnderProject(projectDir: string, relPath: string): string | null {
+  const root = path.resolve(projectDir);
+  const resolved = path.resolve(root, relPath);
+  return resolved.startsWith(`${root}${path.sep}`) ? resolved : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -115,7 +135,8 @@ async function mirrorPublishedArtifacts(
   const outRel = String(outRelRaw ?? "").trim();
   if (!outRel) return;
   if (!Array.isArray(artifactFilesRaw) || !artifactFilesRaw.length) return;
-  const outdir = path.join(projectDir, outRel);
+  const outdir = resolveUnderProject(projectDir, outRel);
+  if (!outdir) throw new Error(`Refusing to mirror artifacts outside the project: ${outRel}`);
   const entries = await fs.readdir(outdir, { withFileTypes: true }).catch(() => []);
   for (const entry of entries) {
     if (entry.name === "check") continue;
@@ -133,6 +154,29 @@ async function mirrorPublishedArtifacts(
     },
   );
   await writeRelativeFiles(projectDir, artifactFiles);
+}
+
+// Replaces the local check output tree (e.g. publish/slidemaker/check) with the server's check
+// artifacts so summary_file paths in the check report resolve locally.
+async function mirrorCheckArtifacts(projectDir: string, outRelRaw: unknown, artifactFilesRaw: unknown): Promise<number> {
+  const outRel = String(outRelRaw ?? "").trim().replace(/\/+$/, "");
+  if (!outRel || !Array.isArray(artifactFilesRaw)) return 0;
+  const outdir = resolveUnderProject(projectDir, outRel);
+  if (!outdir) throw new Error(`Refusing to mirror check artifacts outside the project: ${outRel}`);
+  const files: RelativeFilePayload[] = (artifactFilesRaw as unknown[])
+    .map((entry) => {
+      const rec = asRecord(entry);
+      return {
+        path: String(rec.path ?? ""),
+        encoding: rec.encoding === "base64" ? ("base64" as const) : ("utf8" as const),
+        content: String(rec.content ?? ""),
+      };
+    })
+    .filter((file) => file.path.startsWith(`${outRel}/`));
+  await fs.rm(outdir, { recursive: true, force: true });
+  await fs.mkdir(outdir, { recursive: true });
+  await writeRelativeFiles(projectDir, files);
+  return files.length;
 }
 
 // ---------------------------------------------------------------------------
@@ -166,7 +210,8 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
     const target = argv[2] ?? null;
     const projectDir = await localProjectDir(project);
     const files = await bundleProjectFiles(projectDir);
-    const syncState = await readWorkflowCloudSync(projectDir, target ?? "slidemaker");
+    // Read the sync state under the same workflow name the server resolves (and that we write below).
+    const syncState = await readWorkflowCloudSync(projectDir, await localPublishTarget(projectDir, target));
     const result = asRecord(
       await postJson(`${apiBaseUrl}/api/projects/publish`, {
         project,
@@ -195,6 +240,10 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
     };
     delete output.artifact_files;
     process.stdout.write(`${JSON.stringify(output, null, 2)}\n`);
+    if (!publishOk) {
+      process.stderr.write(`publish failed: publish_ok=${String(result.publish_ok)}; the deck was not published. Fix the failing slides and publish again.\n`);
+      process.exitCode = 1;
+    }
     return;
   }
 
@@ -243,16 +292,20 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
     const result = asRecord(
       await postJson(`${apiBaseUrl}/api/projects/check`, {
         project,
-        workflow: target,
+        target,
         files,
+        include_artifact_files: true,
       }),
     );
-    // Mirror check artifacts locally
-    if (result.artifact_files) {
-      await mirrorPublishedArtifacts(projectDir, String(result.out ?? ""), result.artifact_files);
-      delete result.artifact_files;
-    }
-    process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    // Mirror check artifacts (workflow summary + per-slide summary/lint/layout JSON) locally.
+    const mirrored = await mirrorCheckArtifacts(projectDir, result.out, result.artifact_files);
+    delete result.artifact_files;
+    const output: Record<string, unknown> = {
+      ...result,
+      project_path: projectDir,
+      local_artifacts_mirrored: mirrored,
+    };
+    process.stdout.write(`${JSON.stringify(output, null, 2)}\n`);
     return;
   }
 

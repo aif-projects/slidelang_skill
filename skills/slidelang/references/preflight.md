@@ -30,22 +30,27 @@ Every issue carries:
 - `auto_fixable`: whether the compiler can fix it
 - `revision_required`: whether the author must intervene
 - `class`: severity class
-- `severity`: numeric severity
+- `severity`: `"error"` or `"warn"` (editorial issues default to `"warn"`)
 
 ## Issue classes
 
 | Class | Meaning |
 |-------|---------|
-| `blocking` | Must fix before publish succeeds |
-| `repairable` | Should fix for clean output |
-| `editorial` | Optional quality improvement |
+| `blocking` | Must fix before publish succeeds (default gate) |
+| `repairable` | Must fix for `clean_ok` |
+| `editorial` | Must fix for `clean_ok` (density, container/module/slot overflow); does not block the default publish gate |
 
 ## Workflow summary fields
 
-The three fields that matter for success criteria:
-- `ok`: basic compilation succeeded
-- `publish_ok`: no blocking issues remain (`blocking_ok` is an alias)
-- `clean_ok`: no blocking or repairable issues remain (`repairable_ok` is an alias)
+The fields that matter for success criteria:
+- `blocking_ok`: no blocking issues remain
+- `repairable_ok`: no repairable issues remain (independent of editorial issues; not the same as `clean_ok`)
+- `clean_ok`: no blocking, repairable, **or editorial** issues remain
+- `publish_ok`: the workflow gate is met (default gate `blocking` = no blocking issues). An empty workflow is never `publish_ok`.
+- `ok`:
+  - per-slide `*.summary.json`: equals `clean_ok` (slides are graded with gate `all`, so per-slide `publish_ok` also equals `clean_ok`)
+  - `check` workflow summary: every slide is `blocking_ok`; the check summary has no `publish_ok` key
+  - `publish` workflow summary: equals `publish_ok`
 
 Additional detail:
 - `class_counts`: `{blocking: N, repairable: N, editorial: N}`
@@ -54,11 +59,13 @@ Additional detail:
 
 **text_fit_x / text_fit_y**: Reduce text content, increase container dimensions, lower font size, or raise `mc` budget.
 
-**density_overflow**: Reduce text content in the container, increase container size, or adjust `pd`/`hd` thresholds.
+**density_overflow**: Reduce text content in the container, increase container size, or adjust the density thresholds inside the budget objects — `{"ab": {"pd": 0.5}}` (parent density) or `{"rb": {"hd": 0.6}}` (hard density), or their flat forms `tdp` / `td`. A bare `pd` or `hd` opt directly on an `m`/`b` is rejected as an unsupported box option.
 
 **text_overlap**: Move one of the overlapping text nodes, reduce their size, or restructure the layout.
 
-**connector_detached**: Ensure both endpoints reference valid node IDs with valid anchor points (e.g., `"NODE:r"` not `"MISSING:r"`).
+**connector_detached**: The connector endpoint does not touch its node's boundary; re-anchor it (e.g., `"NODE:r"`) or move the nodes.
+
+**Unknown node ids**: A connector ref such as `"MISSING:r"` (or a `parent` that names a missing node) does not produce an issue — it throws `Unknown anchor node: MISSING:r` and aborts the whole `check`/`publish`. Fix the id, then re-run.
 
 **connector_internal_endpoint**: Use boundary anchors (`t b l r tl tr bl br`) instead of center or raw coordinates.
 
@@ -66,4 +73,4 @@ Additional detail:
 
 ## Text node repair hints
 
-When the compiler repositions text to fix layout issues, you can constrain it using text opts documented in `dsl.md`: `lockx`/`locky` (prevent movement), `mdx`/`mdy` (limit drift), `ra`/`ro` (rotation).
+When the compiler repositions text to fix layout issues, you can constrain it using text opts documented in `dsl.md`: `lockx`/`locky` (prevent movement), `mdx`/`mdy` (limit drift), `ra`/`ro` (repair axis / repair order: which direction and in what order the resolver may move the node).
