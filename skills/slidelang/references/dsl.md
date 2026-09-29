@@ -64,6 +64,7 @@ Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
   - `stroke_width`: stroke width in px
   - `stroke_dash`: space-separated dash pattern, for example `"4 3"`
   - example: `["b", "C1", 56, 420, 432, 320, "sqw", null, {"cp": 28, "rx": 18, "fill": "#ECE5F7", "stroke": "line", "stroke_width": 1}]`
+- `cl` is an invisible layout container. Once per-box opts give it a visible `fill` or `stroke`, it is checked like any other box: text must stay inside it and connectors may not cross it. Add `to: false` / `co: false` only when overlap is intentional.
 - box visual precedence is per-element opts over style token over runtime defaults; unsupported direct `m` / `b` opts are errors
 
 ## Ops
