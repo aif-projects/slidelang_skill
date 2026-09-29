@@ -9,7 +9,7 @@ export interface DeckPlanAsset {
   id: string;
   title?: string;
   prompt?: string;
-  mode?: "ref" | "asset";
+  mode?: "asset";
   role?: string;
   must_include?: string[];
   review_focus?: string[];
@@ -147,7 +147,7 @@ Authoring rules:
 - Research the topic yourself as needed. Do not assume the scaffold pre-fetched or summarized anything for you.
 - Do not rely on prior deck artifacts or starter slide files. Create the slide specs yourself.
 - Strict benchmark rule: do not create \`decks/main/theme.json\` or any \`decks/main/slide_*.sl.json\` files until the planned generated images already exist on disk. If you author deck files first, the run is invalid and should be restarted with a fresh project id.
-- Generate the planned SlideLang images before authoring the deck: any explicit ref assets under \`assets/refs/\` and any direct embeddable assets under \`assets/generated/\`.
+- Generate the planned embeddable assets under \`assets/generated/\` before authoring the deck.
 - If \`brief/deck_plan.json\` exists, image generation reads each slide's explicit \`assets\` entries. Every entry needs a non-empty \`prompt\` and a plain \`id\` (letters, numbers, \`_\`, \`-\`, \`.\`); an entry without a prompt fails the whole run.
 - If \`brief/deck_plan.json\` does not exist yet, write it before running the image CLI.
 - Create the deck theme yourself in \`decks/main/theme.json\`.
@@ -184,8 +184,8 @@ Authoring rules:
 - Run \`npm run projects -- budget ${projectId} slidemaker\` before the first publish once your first draft slides exist.
 - Debug using \`publish/slidemaker/check/workflow_summary.json\` and the per-slide \`summary.json\` / \`lint.json\` / \`layout.json\` files (\`check\` mirrors them into this project directory).
 - If the right fix is ambiguous, run \`npm run projects -- check ${projectId} slidemaker\` first, then \`npm run projects -- repair-plan ${projectId} slidemaker\` or add a slide id at the end.
-- For generated refs and assets, inspect the actual generated image files and compare them against the generated review checklist before you use them.
-- If a ref or asset contains unwanted text or the composition is wrong, rerun the image CLI with \`--slide <stem>\`, \`--asset <id>\`, and \`--retry\` rather than regenerating the whole batch.
+- For generated assets, inspect the actual generated image files and compare them against the generated review checklist before you use them.
+- If an asset contains unwanted text or the composition is wrong, rerun the image CLI with \`--slide <stem>\`, \`--asset <id>\`, and \`--retry\` rather than regenerating the whole batch.
 
 Preferred deck theme at \`decks/main/theme.json\`:
 
@@ -210,7 +210,6 @@ Preferred deck theme at \`decks/main/theme.json\`:
 Theme rules:
 - Choose your own palette and typography deliberately for this deck.
 - Do not copy a default beige/editorial scheme from this guide.
-- Refs are layout-only. Use them for grouping and composition, not for palette, branding, or typography decisions.
 - \`font_body\` is the canonical required body font. \`font\` is still accepted as a legacy fallback and will default from \`font_body\` if omitted.
 - On dark paper, make \`line\` materially lighter than the background when you intentionally use bordered styles. Flat panels are checked by fill contrast instead.
 
@@ -231,9 +230,9 @@ Image generation quickstart:
 - Preferred command from the skill root: \`npm run images -- --project-root ${projectDir}\`
 - That CLI calls the SlideLang image API and mirrors generated files back into the local deck.
 - Do not rely on local provider API keys for this path.
-- The server-side image pipeline routes slide refs through OpenAI GPT Image 2.5 Flare and embeddable assets through GPT Image 2.5 Sunburst.
+- The server-side image pipeline generates embeddable assets with OpenAI GPT Image 2.5 Sunburst.
 - If \`brief/deck_plan.json\` does not exist yet, write it first with one slide entry per planned slide and include \`stem\`, \`title\`, and optional \`assets\` entries.
-- For generated images, add an \`assets\` array on the slide with entries like \`{ "id": "hero_bg", "mode": "asset", "prompt": "..." }\` or \`{ "id": "slide_03_ref", "mode": "ref", "prompt": "..." }\`.
+- For generated images, add an \`assets\` array on the slide with entries like \`{ "id": "hero_bg", "mode": "asset", "prompt": "..." }\`. Every entry is an embeddable asset; layout reference images (\`"mode": "ref"\`) were removed, and any leftover \`ref\` entries are skipped and reported under \`skipped\` with \`reason: "ref_mode_removed"\`. Describe the intended layout in the deck plan or slide specs instead.
 - Use assets more freely than a fallback escape hatch. They are often the biggest quality jump in a deck when they replace fake placeholder visuals with real imagery, and the strongest technical decks often use more than one.
 - Do not stop at a single hero asset if content slides would be clearer with small supporting visuals.
 - Keep formulas, labels, connector logic, and simple explanatory diagrams native; use assets for the parts SlideLang cannot fake convincingly.
@@ -244,7 +243,6 @@ Image generation quickstart:
   - do not default to paper-matched deck backgrounds as a fake matte
 - Generated assets are auto-registered into \`manifest.json\` and written under \`assets/generated/\`.
 - Generated asset metadata and review checklists are written to \`assets/generated/manifest.json\`.
-- Opt-in refs use OpenAI GPT Image 2.5 Flare.
 - Assets use OpenAI GPT Image 2.5 Sunburst and are stored as WebP.
 - For focused retries, use:
   - \`npm run images -- --project-root ${projectDir} --slide slide_03\`
@@ -300,12 +298,8 @@ Rules of thumb:
 - Choose the deck title deliberately; the scaffold title is only a placeholder until you set one.
 - Stay faithful to your stated intent and any materials you decide to rely on.
 - Stay editable: do not embed raster images as the final diagram.
-- Decide the slide arc first, then generate the planned opt-in refs and embeddable assets before authoring the deck.
-- Name refs with slide-linked filenames like \`slide_00_ref\`, \`slide_01_ref\`, and so on; the CLI will write the provider-native image extension.
+- Decide the slide arc first, then generate the planned embeddable assets before authoring the deck.
 - Do not create any files under \`decks/main/\` until the planned generated images already exist on disk.
-- Let each slide's ref guide composition and spatial positioning for that slide only.
-- Do not let refs choose the deck palette, font, or overall brand treatment.
-- Use refs as art direction only; keep the final deck native and editable.
 
 Copy-budget guidance for cleaner first passes:
 - Keep titles to roughly 3 to 7 words.
@@ -335,7 +329,7 @@ Suggested first-pass workflow:
 2. Choose the deck title and research path yourself.
 3. Decide the deck arc.
 4. Write \`brief/deck_plan.json\` if it does not exist yet.
-5. Run \`npm run images -- --project-root ${projectDir}\` to generate the planned opt-in refs and embeddable assets through the image API.
+5. Run \`npm run images -- --project-root ${projectDir}\` to generate the planned embeddable assets through the image API.
 6. Review any generated assets visually against the generated checklist and rerun with \`--retry\` if needed.
 7. Confirm the planned generated images exist on disk before authoring anything under \`decks/main/\`.
 8. Create \`decks/main/theme.json\` from the chosen direction.
@@ -357,7 +351,7 @@ Success criteria:
 Final response requirements:
 - final status with the exact \`ok\`, \`publish_ok\`, and \`clean_ok\` values
 - files changed
-- which planned opt-in refs/assets you generated and used
+- which planned assets you generated and used
 - what was hardest about getting to clean_ok
 - 2-4 short feedback points about the toolchain, with at least:
   - one thing that worked well
@@ -419,9 +413,8 @@ export async function scaffoldProject(
   const decksDir = path.join(projectDir, "decks", "main");
   const briefDir = path.join(projectDir, "brief");
   const assetsDir = path.join(projectDir, "assets");
-  const refsDir = path.join(assetsDir, "refs");
   const generatedDir = path.join(assetsDir, "generated");
-  await Promise.all([ensureDir(decksDir), ensureDir(briefDir), ensureDir(assetsDir), ensureDir(refsDir), ensureDir(generatedDir)]);
+  await Promise.all([ensureDir(decksDir), ensureDir(briefDir), ensureDir(assetsDir), ensureDir(generatedDir)]);
 
   const deckTitle = String(plan?.project_title ?? titleCaseSlug(projectId));
   const manifest = scaffoldManifest(projectId, deckTitle);
@@ -450,7 +443,6 @@ export async function scaffoldProject(
       planned_slides: plan?.slides?.map((slide) => ({ stem: slide.stem, title: slide.title })) ?? [],
       planner_model: plan?.planner_model ?? null,
       plan_generated: Boolean(plan),
-      refs_dir: refsDir,
     }, null, 2)}\n`,
     "utf8",
   );
