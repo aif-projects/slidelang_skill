@@ -13,7 +13,8 @@ function toPosix(relPath: string): string {
 
 function ensureSafeRelativePath(relPath: string): string {
   const normalized = toPosix(String(relPath ?? "").replaceAll("\\", "/").replace(/^\/+/, ""));
-  if (!normalized || normalized === "." || normalized.startsWith("../") || normalized.includes("/../")) {
+  const unsafeSegment = normalized.split("/").some((segment) => segment === "" || segment === "." || segment === "..");
+  if (!normalized || normalized.includes("\0") || unsafeSegment) {
     throw new Error(`Unsupported file path: ${relPath}`);
   }
   return normalized;

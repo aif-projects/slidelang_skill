@@ -14,8 +14,12 @@ function toPosix(relPath: string): string {
   return relPath.split(path.sep).join("/");
 }
 
+function hasUnsafeSegment(relPath: string): boolean {
+  return relPath.includes("\0") || relPath.split("/").some((segment) => segment === "" || segment === "." || segment === "..");
+}
+
 function allowedRelativePath(relPath: string): boolean {
-  if (!relPath || relPath.startsWith("/") || relPath.startsWith("../") || relPath.includes("/../")) return false;
+  if (!relPath || relPath.startsWith("/") || hasUnsafeSegment(relPath)) return false;
   if (INCLUDED_TOP_LEVEL_FILES.has(relPath)) return true;
   return INCLUDED_PREFIXES.some((prefix) => relPath === prefix || relPath.startsWith(`${prefix}/`));
 }
