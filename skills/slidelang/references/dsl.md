@@ -226,9 +226,7 @@ Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
 
 ## Images
 
-- roles:
-  - `ref`: composition / layout only
-  - `asset`: embeddable image
+- every generated image is an embeddable asset (`mode: "asset"`, the default)
 - policy:
   - do not treat assets as last resort only
   - on many technical decks, the strongest result uses 2-4 well-chosen assets, not just a single hero image
@@ -237,7 +235,6 @@ Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
   - use assets when they replace fake placeholders with real visuals
   - do not stop at the opener if later slides still need real imagery
   - keep formulas, labels, connectors, and simple diagrams native
-  - refs do not choose palette, branding, or typography
 - asset background policy:
   - `background_policy: "frame_fill"` = image owns full panel / frame
     - frame-fill assets are generated natively at 16:9 (2048x1152) and stored as WebP; keep the main subject clear of regions where slide text will overlay it
@@ -245,8 +242,8 @@ Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
   - `background_policy: "paper_match"` = explicit fallback only, not default
 - deck plan fields:
   - `assets: [...]`
-  - `mode: "ref"` for generated composition refs
-  - `mode: "asset"` for generated embeddable images
+  - `mode: "asset"` for generated embeddable images (optional; the default)
+  - layout reference images (`mode: "ref"`) were removed; leftover `ref` entries are skipped and reported under `skipped` with `reason: "ref_mode_removed"`. Describe layout in the deck plan or slide specs instead.
   - `background_policy` for asset entries
 - example:
 
@@ -264,7 +261,6 @@ Purpose: compact agent-facing DSL reference. Prefer this over README for ICL.
   - `npm run images -- --project-root /abs/path/to/project`
   - `npm run images -- --project-root /abs/path/to/project --slide slide_hero --asset hero_bg --retry`
 - outputs:
-  - opt-in refs in `assets/refs/`
   - `assets/generated/`
   - alias registration in `manifest.json`
 - layout helpers:

@@ -55,7 +55,7 @@ npm run deck-scratch -- --project-id <project-id> --intent "<what the deck is ab
 This creates `<projects-dir>/<project-id>/` with:
 - `manifest.json`
 - `brief/brief.json` and `brief/AUTHORING_GUIDE.md`
-- empty `decks/main/`, `assets/refs/`, `assets/generated/`
+- empty `decks/main/`, `assets/generated/`
 
 The full project directory path is `<projects-dir>/<project-id>` — use this as `<project-dir>` in later commands.
 
@@ -97,7 +97,8 @@ Visual mode per slide:
 - `native` — spatial labels, connectors, text, charts, and diagrams drawn by the layout engine
 - `asset` — uses a generated image (hero, illustration, etc.)
 - `hybrid` — combines native elements with a generated image
-- `assets[].mode: "ref"` — optional explicit composition ref image
+
+Every `assets[]` entry is an embeddable asset (`mode: "asset"`, the default). Layout reference images (`mode: "ref"`) were removed: `images` skips any leftover `ref` entries and reports them under `skipped` with `reason: "ref_mode_removed"`. Describe the intended layout in the deck plan or slide specs instead.
 
 Image guidelines:
 - Do not treat assets as a last resort. Many technical decks benefit from 2-4 assets.
@@ -113,7 +114,6 @@ npm run images -- --project-root <project-dir>
 ```
 
 This reads `brief/deck_plan.json` and generates:
-- Explicit composition refs under `assets/refs/` for `assets[]` entries with `mode: "ref"` (layout guidance only, not on final slides)
 - Embeddable assets under `assets/generated/` (appear on final slides)
 - Auto-registers assets in `manifest.json`
 
@@ -124,7 +124,7 @@ npm run images -- --project-root <project-dir> --slide slide_03
 npm run images -- --project-root <project-dir> --slide slide_00 --asset hero_bg --retry
 ```
 
-Generate planned opt-in refs/assets before creating slide files. `images` registers an `asset:<id>` alias in `manifest.json` only once that asset's file exists, and a registered asset whose file is missing fails `check`/`publish`. An *unregistered* `asset:<id>` is not flagged at all — it renders as a broken image — so confirm the id is listed under `manifest.json` → `workflows.slidemaker.assets` before referencing it. If some images fail, the command exits non-zero, lists them under `failed`, and keeps the ones that succeeded; re-run just the failures with `--slide/--asset --retry`.
+Generate planned assets before creating slide files. `images` registers an `asset:<id>` alias in `manifest.json` only once that asset's file exists, and a registered asset whose file is missing fails `check`/`publish`. An *unregistered* `asset:<id>` is not flagged at all — it renders as a broken image — so confirm the id is listed under `manifest.json` → `workflows.slidemaker.assets` before referencing it. If some images fail, the command exits non-zero, lists them under `failed`, and keeps the ones that succeeded; re-run just the failures with `--slide/--asset --retry`.
 
 ### Optional: register local videos
 
@@ -306,7 +306,7 @@ All commands run from the skill root via `npm run`. Set `DECKS_DATA_ROOT` to con
 
 ```bash
 npm run deck-scratch -- --project-id <id> --intent "<intent>"  # scaffold new project
-npm run images -- --project-root <project-dir>                  # generate opt-in refs and assets
+npm run images -- --project-root <project-dir>                  # generate planned assets
 npm run projects -- list                                        # list all projects
 npm run projects -- show <project>                              # inspect a project
 npm run projects -- pull <project> slidemaker                   # pull latest from hosted
